@@ -11,6 +11,13 @@
 	</parent>
 
 	<name>Explore With Me</name>
+	<modules>
+		<module>stats</module>
+		<module>stats/stats-client</module>
+		<module>stats/stats-dto</module>
+		<module>stats/stats-server</module>
+		<module>main-service</module>
+	</modules>
 
 	<groupId>ru.practicum</groupId>
 	<artifactId>explore-with-me</artifactId>
@@ -20,7 +27,19 @@
 	<properties>
 		<java.version>21</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<springdoc.version>1.6.11</springdoc.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-ui</artifactId>
+				<version>${springdoc.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<pluginManagement>
@@ -147,6 +166,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
 	<profiles>
 		<profile>
 			<id>check</id>
