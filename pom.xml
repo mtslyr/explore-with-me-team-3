@@ -13,9 +13,6 @@
 	<name>Explore With Me</name>
 	<modules>
 		<module>stats</module>
-		<module>stats/stats-client</module>
-		<module>stats/stats-dto</module>
-		<module>stats/stats-server</module>
 		<module>main-service</module>
 	</modules>
 
@@ -44,6 +41,10 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+				<plugin>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-maven-plugin</artifactId>
+				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
