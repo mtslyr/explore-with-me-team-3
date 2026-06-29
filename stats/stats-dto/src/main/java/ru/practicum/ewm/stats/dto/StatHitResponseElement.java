@@ -1,4 +1,4 @@
-package ru.practicum.stat.dto;
+package ru.practicum.ewm.stats.dto;
 
 import lombok.AccessLevel;
 import lombok.Getter;

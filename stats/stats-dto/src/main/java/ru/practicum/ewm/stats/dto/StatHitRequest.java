@@ -1,11 +1,11 @@
-package ru.practicum.stat.dto;
+package ru.practicum.ewm.stats.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import ru.practicum.stat.validation.OnCreate;
+import ru.practicum.ewm.stats.validation.OnCreate;
 
 import java.time.LocalDateTime;
 
