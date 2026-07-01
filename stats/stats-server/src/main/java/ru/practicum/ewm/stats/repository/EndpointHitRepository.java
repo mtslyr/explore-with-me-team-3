@@ -1,6 +1,7 @@
 package ru.practicum.ewm.stats.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.ewm.stats.dto.StatHitResponseElement;
 import ru.practicum.ewm.stats.model.EndpointHit;
@@ -16,7 +17,8 @@ public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> 
             group by h.app, h.uri
             order by count(h.ip) desc
             """)
-    List<StatHitResponseElement> findStats(LocalDateTime start, LocalDateTime end);
+    List<StatHitResponseElement> findStats(@Param("start") LocalDateTime start,
+                                           @Param("end") LocalDateTime end);
 
     @Query("""
             select new ru.practicum.ewm.stats.dto.StatHitResponseElement(h.app, h.uri, count(h.ip))
@@ -26,7 +28,9 @@ public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> 
             group by h.app, h.uri
             order by count(h.ip) desc
             """)
-    List<StatHitResponseElement> findStats(LocalDateTime start, LocalDateTime end, List<String> uris);
+    List<StatHitResponseElement> findStats(@Param("start") LocalDateTime start,
+                                           @Param("end") LocalDateTime end,
+                                           @Param("uris") List<String> uris);
 
     @Query("""
             select new ru.practicum.ewm.stats.dto.StatHitResponseElement(h.app, h.uri, count(distinct h.ip))
@@ -35,7 +39,8 @@ public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> 
             group by h.app, h.uri
             order by count(distinct h.ip) desc
             """)
-    List<StatHitResponseElement> findUniqueStats(LocalDateTime start, LocalDateTime end);
+    List<StatHitResponseElement> findUniqueStats(@Param("start") LocalDateTime start,
+                                                 @Param("end") LocalDateTime end);
 
     @Query("""
             select new ru.practicum.ewm.stats.dto.StatHitResponseElement(h.app, h.uri, count(distinct h.ip))
@@ -45,5 +50,7 @@ public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> 
             group by h.app, h.uri
             order by count(distinct h.ip) desc
             """)
-    List<StatHitResponseElement> findUniqueStats(LocalDateTime start, LocalDateTime end, List<String> uris);
+    List<StatHitResponseElement> findUniqueStats(@Param("start") LocalDateTime start,
+                                                 @Param("end") LocalDateTime end,
+                                                 @Param("uris") List<String> uris);
 }
