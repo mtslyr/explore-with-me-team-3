@@ -2,8 +2,13 @@ package ru.practicum.ewm.stats.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.ewm.stats.validation.OnCreate;
 
@@ -33,7 +38,7 @@ public class StatHitRequest {
     )
     String ip;
 
-    @NotBlank(
+    @NotNull(
             groups = OnCreate.class,
             message = "Request timestamp is required"
     )
