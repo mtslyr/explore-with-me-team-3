@@ -3,6 +3,7 @@ package ru.practicum.ewm.stats.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.ewm.stats.dto.StatHitRequest;
 import ru.practicum.ewm.stats.dto.StatHitResponseElement;
@@ -18,6 +19,7 @@ public class StatsServiceImpl implements StatsService {
     private final EndpointHitRepository repository;
 
     @Override
+    @Transactional
     public void saveHit(StatHitRequest request) {
         repository.save(EndpointHitMapper.toEntity(request));
     }
