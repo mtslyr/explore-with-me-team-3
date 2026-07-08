@@ -2,6 +2,7 @@ package ru.practicum.ewm.compilations.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.compilations.dto.CompilationDtoResponse;
@@ -22,6 +23,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Qualifier("CompilationServiceImpl")
 @Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
     private final EventDummyRepository eventRepository;
@@ -87,7 +89,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     private List<EventDummy> getEvents(List<Long> eventIds) {
-        return eventIds == null ? List.of() : eventRepository.findById(eventIds);
+        return eventIds == null ? List.of() : eventRepository.findByIdIn(eventIds);
     }
 
     private Compilation getCompilation(long id) {

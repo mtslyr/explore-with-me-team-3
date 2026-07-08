@@ -15,4 +15,5 @@ public class EventDummy {
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
 }
