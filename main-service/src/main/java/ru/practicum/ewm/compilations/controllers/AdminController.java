@@ -1,6 +1,5 @@
 package ru.practicum.ewm.compilations.controllers;
 
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

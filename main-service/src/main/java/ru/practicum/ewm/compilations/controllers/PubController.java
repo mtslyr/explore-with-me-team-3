@@ -29,9 +29,9 @@ public class PubController {
     @GetMapping
     public ResponseEntity<List<CompilationDtoResponse>> get(
             @RequestParam(name = PARAM_PINNED, required = false) Boolean pinned,
-            @RequestParam(name = PARAM_FROM, required = false)
+            @RequestParam(name = PARAM_FROM, required = false, defaultValue = "0")
             @PositiveOrZero int from,
-            @RequestParam(name = PARAM_SIZE, required = false)
+            @RequestParam(name = PARAM_SIZE, required = false, defaultValue = "10")
             @Positive int size
     ) {
 
