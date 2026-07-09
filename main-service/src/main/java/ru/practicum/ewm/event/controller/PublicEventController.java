@@ -1,5 +1,6 @@
 package ru.practicum.ewm.event.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -11,7 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.service.EventService;
+import ru.practicum.ewm.stats.clients.HitClient;
+import ru.practicum.ewm.stats.dto.StatHitRequest;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Validated
@@ -20,6 +24,7 @@ import java.util.List;
 @RequestMapping("/events")
 public class PublicEventController {
     private final EventService service;
+    private final HitClient hitClient;
 
     @GetMapping
     public List<EventShortDto> getPublicEvents(
@@ -31,13 +36,37 @@ public class PublicEventController {
             @RequestParam(defaultValue = "false") Boolean onlyAvailable,
             @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") @Min(0) int from,
-            @RequestParam(defaultValue = "10") @Min(1) int size
+            @RequestParam(defaultValue = "10") @Min(1) int size,
+            HttpServletRequest request
     ) {
-        return service.getPublicEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+        List<EventShortDto> events = service.getPublicEvents(
+                text,
+                categories,
+                paid,
+                rangeStart,
+                rangeEnd,
+                onlyAvailable,
+                sort,
+                from,
+                size
+        );
+        saveHit(request);
+        return events;
     }
 
     @GetMapping("/{eventId}")
-    public EventFullDto getPublicEvent(@PathVariable Long eventId) {
-        return service.getPublicEvent(eventId);
+    public EventFullDto getPublicEvent(@PathVariable Long eventId, HttpServletRequest request) {
+        EventFullDto event = service.getPublicEvent(eventId);
+        saveHit(request);
+        return event;
+    }
+
+    private void saveHit(HttpServletRequest request) {
+        hitClient.saveHit(new StatHitRequest(
+                "ewm-main-service",
+                request.getRequestURI(),
+                request.getRemoteAddr(),
+                LocalDateTime.now()
+        ));
     }
 }
