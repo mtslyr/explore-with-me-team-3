@@ -61,6 +61,9 @@ public class RequestServiceImpl implements RequestService {
         findUser(userId);
         ParticipationRequest request = requestRepository.findByIdAndRequesterId(requestId, userId)
                 .orElseThrow(() -> new NotFoundException("Request with id=" + requestId + " was not found"));
+        if (request.getStatus() != RequestStatus.PENDING) {
+            throw new ConflictException("Only pending request can be canceled");
+        }
         request.setStatus(RequestStatus.CANCELED);
         return ParticipationRequestMapper.toDto(request);
     }
@@ -171,7 +174,7 @@ public class RequestServiceImpl implements RequestService {
         boolean hasNotPending = requests.stream()
                 .anyMatch(request -> request.getStatus() != RequestStatus.PENDING);
         if (hasNotPending) {
-            throw new BadRequestException("Request must have status PENDING");
+            throw new ConflictException("Request must have status PENDING");
         }
     }
 

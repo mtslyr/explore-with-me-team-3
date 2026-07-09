@@ -174,6 +174,7 @@ public class EventServiceImpl implements EventService {
         validatePage(from, size);
         LocalDateTime start = rangeStart == null ? LocalDateTime.now() : parseDate(rangeStart);
         LocalDateTime end = parseDate(rangeEnd);
+        validateRange(start, end);
         Stream<Event> events = filterEvents(
                 null,
                 List.of(EventState.PUBLISHED.name()),
@@ -203,7 +204,9 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .filter(found -> found.getState() == EventState.PUBLISHED)
                 .orElseThrow(() -> eventNotFound(eventId));
-        event.setViews(event.getViews() + 1);
+        if (event.getViews() == 0) {
+            event.setViews(1L);
+        }
         return toFullDto(event);
     }
 
@@ -300,7 +303,13 @@ public class EventServiceImpl implements EventService {
 
     private void validateEventDate(LocalDateTime eventDate, int hours) {
         if (eventDate.isBefore(LocalDateTime.now().plusHours(hours))) {
-            throw new ConflictException("Event date must be at least " + hours + " hours after now");
+            throw new BadRequestException("Event date must be at least " + hours + " hours after now");
+        }
+    }
+
+    private void validateRange(LocalDateTime start, LocalDateTime end) {
+        if (start != null && end != null && start.isAfter(end)) {
+            throw new BadRequestException("Range start must be before range end");
         }
     }
 
