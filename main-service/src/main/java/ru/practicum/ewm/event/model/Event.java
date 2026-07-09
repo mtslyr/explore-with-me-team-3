@@ -18,6 +18,8 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.ewm.user.model.User;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "events")
 @Getter
@@ -32,6 +34,21 @@ public class Event {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initiator_id", nullable = false)
     User initiator;
+
+    @Column(length = 2000)
+    String annotation;
+
+    @Column(length = 120)
+    String title;
+
+    @Column(name = "event_date")
+    LocalDateTime eventDate;
+
+    @Column(nullable = false)
+    Boolean paid = false;
+
+    @Column(nullable = false)
+    Long views = 0L;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
