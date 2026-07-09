@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.user.model.User;
 
 import java.time.LocalDateTime;
@@ -35,14 +36,31 @@ public class Event {
     @JoinColumn(name = "initiator_id", nullable = false)
     User initiator;
 
-    @Column(length = 2000)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    Category category;
+
+    @Column(nullable = false, length = 2000)
     String annotation;
 
-    @Column(length = 120)
+    @Column(nullable = false, length = 7000)
+    String description;
+
+    @Column(nullable = false, length = 120)
     String title;
 
-    @Column(name = "event_date")
+    @Column(name = "event_date", nullable = false)
     LocalDateTime eventDate;
+
+    @Column(name = "created_on", nullable = false)
+    LocalDateTime createdOn;
+
+    @Column(name = "published_on")
+    LocalDateTime publishedOn;
+
+    Float lat;
+
+    Float lon;
 
     @Column(nullable = false)
     Boolean paid = false;

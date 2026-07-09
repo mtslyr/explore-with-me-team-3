@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class ErrorHandler {
 
     @ExceptionHandler({
             BadRequestException.class,
+            ConstraintViolationException.class,
             HttpMessageNotReadableException.class,
             MethodArgumentNotValidException.class,
             MethodArgumentTypeMismatchException.class
