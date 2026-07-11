@@ -11,8 +11,8 @@ import java.util.List;
 @Getter
 @ToString
 public class CompilationDtoResponse {
-    private long id;
-    private boolean pinned;
+    private Long id;
+    private Boolean pinned;
     private String title;
     private List<EventDtoDummy> events;
 }

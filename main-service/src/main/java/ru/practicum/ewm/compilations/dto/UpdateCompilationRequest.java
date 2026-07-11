@@ -12,7 +12,7 @@ import java.util.List;
 @ToString
 public class UpdateCompilationRequest {
     private List<Long> eventIds;
-    private boolean pinned;
+    private Boolean pinned;
     @Size(min = 1, max = 50, message = "title should be shorter than 50")
     private String title;
 }

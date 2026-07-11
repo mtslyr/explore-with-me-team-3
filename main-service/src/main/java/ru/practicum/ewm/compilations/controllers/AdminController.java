@@ -11,11 +11,9 @@ import ru.practicum.ewm.compilations.dto.UpdateCompilationRequest;
 import ru.practicum.ewm.compilations.services.CompilationService;
 
 @RestController
-@RequestMapping(path = AdminController.URL_BASE)
+@RequestMapping(path = "/admin/compilations")
 @RequiredArgsConstructor
 public class AdminController {
-    public static final String URL_BASE = "/admin/compilations";
-    public static final String ID_COMPILATION = "compId";
 
     private final CompilationService compilationService;
 
@@ -26,18 +24,17 @@ public class AdminController {
                 .body(compilationService.create(dto));
     }
 
-    @PatchMapping("/{" + ID_COMPILATION + "}")
-    public ResponseEntity<CompilationDtoResponse> patch(@PathVariable(name = ID_COMPILATION) long compId,
+    @PatchMapping("/{compId}")
+    public ResponseEntity<CompilationDtoResponse> patch(@PathVariable(name = "compId") Long compId,
                                                         @RequestBody
                                                         @Valid UpdateCompilationRequest dto) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(compilationService.patch(compId, dto));
     }
 
-    @DeleteMapping("/{" + ID_COMPILATION + "}")
-    public ResponseEntity<Void> delete(@PathVariable(name = ID_COMPILATION) long compId) {
+    @DeleteMapping("/{compId}")
+    public ResponseEntity<Void> delete(@PathVariable(name = "compId") Long compId) {
         compilationService.delete(compId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                .body(null);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

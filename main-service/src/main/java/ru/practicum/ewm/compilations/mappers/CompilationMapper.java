@@ -7,7 +7,7 @@ import ru.practicum.ewm.compilations.models.Compilation;
 public class CompilationMapper {
     public static Compilation toModel(NewCompilationDto dto) {
         return Compilation.builder()
-                .pinned(dto.isPinned())
+                .pinned(dto.getPinned())
                 .title(dto.getTitle())
                 .build();
     }
@@ -18,7 +18,7 @@ public class CompilationMapper {
                         .map(event -> EventMapperDummy.toDto(event.getEvent()))
                         .toList())
                 .id(model.getId())
-                .pinned(model.isPinned())
+                .pinned(model.getPinned())
                 .title(model.getTitle())
                 .build();
 

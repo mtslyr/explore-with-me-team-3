@@ -9,6 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 @Entity
 @Table(name = "compilations")
 public class Compilation {
@@ -16,12 +17,13 @@ public class Compilation {
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Setter
+
     @Column(name = "pinned")
-    private boolean pinned;
-    @Setter
+    private Boolean pinned;
+
     @Column(name = "title", length = 50)
     private String title;
+
     @OneToMany(mappedBy = "compilation", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<CompilationEvent> events;
 }

@@ -8,5 +8,5 @@ import lombok.ToString;
 @Getter
 @ToString
 public class EventDtoDummy {
-    private long id;
+    private Long id;
 }

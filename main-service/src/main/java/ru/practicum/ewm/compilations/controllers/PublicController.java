@@ -15,11 +15,10 @@ import ru.practicum.ewm.compilations.services.CompilationService;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = PubController.URL_BASE)
+@RequestMapping("/compilations")
 @RequiredArgsConstructor
 @Validated
-public class PubController {
-    public static final String URL_BASE = "/compilations";
+public class PublicController {
     public static final String PARAM_PINNED = "pinned";
     public static final String PARAM_SIZE = "size";
     public static final String PARAM_FROM = "from";
@@ -37,12 +36,12 @@ public class PubController {
 
         Pageable pageable = PageRequest.of(from / size, size);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(compilationsService.get(pinned, pageable));
+                .body(compilationsService.getCompilations(pinned, pageable));
     }
 
-    @GetMapping("/{" + AdminController.ID_COMPILATION + "}")
+    @GetMapping("/{compId}")
     public ResponseEntity<CompilationDtoResponse> getById(
-            @PathVariable(name = AdminController.ID_COMPILATION)
+            @PathVariable(name = "compId")
             long compId
     ) {
         return ResponseEntity.status(HttpStatus.OK)
