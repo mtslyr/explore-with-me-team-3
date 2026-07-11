@@ -1,4 +1,4 @@
-package ru.practicum.ewm.exceptions;
+package ru.practicum.ewm.common.exception;
 
 public class CompilationNotFoundException extends NotFoundException {
     public CompilationNotFoundException(Long id) {

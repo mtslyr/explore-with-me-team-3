@@ -6,16 +6,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.event.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.ewm.event.dto.EventRequestStatusUpdateResult;
+import ru.practicum.ewm.event.exception.EventNotFoundException;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.exception.ConflictException;
-import ru.practicum.ewm.exception.NotFoundException;
+import ru.practicum.ewm.common.exception.ConflictException;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
+import ru.practicum.ewm.request.exception.RequestNotFoundException;
 import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.model.ParticipationRequest;
 import ru.practicum.ewm.request.model.RequestStatus;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
+import ru.practicum.ewm.user.exception.UserNotFoundException;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
 
@@ -33,15 +35,16 @@ public class RequestServiceImpl implements RequestService {
     private final ParticipationRequestRepository requestRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
+    private final RequestMapper mapper;
 
     @Override
     @Transactional
     public ParticipationRequestDto create(Long userId, Long eventId) {
         User requester = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+                .orElseThrow(() -> new EventNotFoundException(eventId));
 
         if (event.getInitiator().getId().equals(userId)) {
             throw new ConflictException("Initiator cannot add request to own event");
@@ -73,16 +76,16 @@ public class RequestServiceImpl implements RequestService {
 
         request = requestRepository.save(request);
         log.debug("Request created: {} for event {}", request.getId(), eventId);
-        return RequestMapper.toRequestDto(request);
+        return mapper.toRequestDto(request);
     }
 
     @Override
     public List<ParticipationRequestDto> getAllByUser(Long userId) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         return requestRepository.findByRequesterId(userId).stream()
-                .map(RequestMapper::toRequestDto)
+                .map(mapper::toRequestDto)
                 .collect(Collectors.toList());
     }
 
@@ -90,29 +93,29 @@ public class RequestServiceImpl implements RequestService {
     @Transactional
     public ParticipationRequestDto cancel(Long userId, Long requestId) {
         ParticipationRequest request = requestRepository.findById(requestId)
-                .orElseThrow(() -> new NotFoundException("Request with id=" + requestId + " was not found"));
+                .orElseThrow(() -> new RequestNotFoundException(requestId));
 
         if (!request.getRequester().getId().equals(userId)) {
-            throw new NotFoundException("Request with id=" + requestId + " was not found");
+            throw new RequestNotFoundException(requestId);
         }
 
         request.setStatus(RequestStatus.CANCELED);
         request = requestRepository.save(request);
         log.debug("Request canceled: {}", requestId);
-        return RequestMapper.toRequestDto(request);
+        return mapper.toRequestDto(request);
     }
 
     @Override
     public List<ParticipationRequestDto> getByEvent(Long userId, Long eventId) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+                .orElseThrow(() -> new EventNotFoundException(eventId));
 
         if (!event.getInitiator().getId().equals(userId)) {
-            throw new NotFoundException("Event with id=" + eventId + " was not found");
+            throw new EventNotFoundException(eventId);
         }
 
         return requestRepository.findByEventId(eventId).stream()
-                .map(RequestMapper::toRequestDto)
+                .map(mapper::toRequestDto)
                 .collect(Collectors.toList());
     }
 
@@ -121,10 +124,10 @@ public class RequestServiceImpl implements RequestService {
     public EventRequestStatusUpdateResult changeStatus(Long userId, Long eventId,
                                                          EventRequestStatusUpdateRequest dto) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+                .orElseThrow(() -> new EventNotFoundException(eventId));
 
         if (!event.getInitiator().getId().equals(userId)) {
-            throw new NotFoundException("Event with id=" + eventId + " was not found");
+            throw new EventNotFoundException(eventId);
         }
 
         if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
@@ -139,7 +142,7 @@ public class RequestServiceImpl implements RequestService {
 
         for (Long requestId : dto.getRequestIds()) {
             ParticipationRequest request = requestRepository.findById(requestId)
-                    .orElseThrow(() -> new NotFoundException("Request with id=" + requestId + " was not found"));
+                    .orElseThrow(() -> new RequestNotFoundException(requestId));
 
             if (request.getStatus() != RequestStatus.PENDING) {
                 throw new ConflictException("Request must have status PENDING");
@@ -149,7 +152,7 @@ public class RequestServiceImpl implements RequestService {
                 if (confirmed >= limit) {
                     request.setStatus(RequestStatus.REJECTED);
                     requestRepository.save(request);
-                    rejectedRequests.add(RequestMapper.toRequestDto(request));
+                    rejectedRequests.add(mapper.toRequestDto(request));
                     continue;
                 }
                 request.setStatus(RequestStatus.CONFIRMED);
@@ -161,20 +164,20 @@ public class RequestServiceImpl implements RequestService {
             request = requestRepository.save(request);
 
             if (request.getStatus() == RequestStatus.CONFIRMED) {
-                confirmedRequests.add(RequestMapper.toRequestDto(request));
+                confirmedRequests.add(mapper.toRequestDto(request));
             } else {
-                rejectedRequests.add(RequestMapper.toRequestDto(request));
+                rejectedRequests.add(mapper.toRequestDto(request));
             }
         }
 
         if (confirmed >= limit) {
             List<ParticipationRequest> pending = requestRepository.findByEventId(eventId).stream()
                     .filter(r -> r.getStatus() == RequestStatus.PENDING)
-                    .collect(Collectors.toList());
+                    .toList();
             for (ParticipationRequest r : pending) {
                 r.setStatus(RequestStatus.REJECTED);
                 requestRepository.save(r);
-                rejectedRequests.add(RequestMapper.toRequestDto(r));
+                rejectedRequests.add(mapper.toRequestDto(r));
             }
         }
 

@@ -5,10 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.exception.ConflictException;
-import ru.practicum.ewm.exception.NotFoundException;
+import ru.practicum.ewm.common.exception.ConflictException;
 import ru.practicum.ewm.user.dto.NewUserRequest;
 import ru.practicum.ewm.user.dto.UserDto;
+import ru.practicum.ewm.user.exception.UserNotFoundException;
 import ru.practicum.ewm.user.mapper.UserMapper;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper mapper;
 
     @Override
     @Transactional
@@ -30,10 +31,10 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ConflictException("Email " + request.getEmail() + " already exists");
         }
-        User user = UserMapper.toUser(request);
+        User user = mapper.toUser(request);
         user = userRepository.save(user);
         log.debug("User created: {}", user.getId());
-        return UserMapper.toUserDto(user);
+        return mapper.toUserDto(user);
     }
 
     @Override
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
         }
         log.debug("Users found: {}", users.size());
         return users.stream()
-                .map(UserMapper::toUserDto)
+                .map(mapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
@@ -55,7 +56,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void delete(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
         userRepository.deleteById(userId);
         log.debug("User deleted: {}", userId);
     }

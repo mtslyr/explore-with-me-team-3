@@ -14,7 +14,7 @@ import java.util.List;
 @Table(name = "compilations")
 public class Compilation {
     @Id
-    @Column(name = "id", nullable = false)
+    @Column(name = "compilation_id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

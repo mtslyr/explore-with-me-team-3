@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.category.dto.NewCategoryDto;
+import ru.practicum.ewm.category.exception.CategoryAlreadyExistException;
+import ru.practicum.ewm.category.exception.CategoryNotFoundException;
 import ru.practicum.ewm.category.mapper.CategoryMapper;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
-import ru.practicum.ewm.exception.ConflictException;
-import ru.practicum.ewm.exception.NotFoundException;
+import ru.practicum.ewm.common.exception.ConflictException;
+import ru.practicum.ewm.common.exception.ValidationException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,44 +26,58 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper mapper;
 
     @Override
     @Transactional
     public CategoryDto create(NewCategoryDto dto) {
-        Category category = CategoryMapper.toCategory(dto);
+        if (dto.getName() == null || dto.getName().trim().isEmpty()) {
+            throw new ValidationException("Field: name. Error: must not be blank. Value: null");
+        }
+
+        Category category = mapper.toCategory(dto);
+
         try {
             category = categoryRepository.save(category);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException("Category name " + dto.getName() + " already exists");
+            throw new CategoryAlreadyExistException(dto.getName());
         }
+
         log.debug("Category created: {}", category.getId());
-        return CategoryMapper.toCategoryDto(category);
+        return mapper.toCategoryDto(category);
     }
 
     @Override
     @Transactional
     public CategoryDto update(Long catId, CategoryDto dto) {
         Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
-        category.setName(dto.getName());
+                .orElseThrow(()
+                        -> new CategoryNotFoundException(catId));
+
+        if (dto.getName() != null) {
+            category.setName(dto.getName());
+        }
+
         try {
             category = categoryRepository.save(category);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException("Category name " + dto.getName() + " already exists");
+            throw new CategoryAlreadyExistException(dto.getName());
         }
+
         log.debug("Category updated: {}", catId);
-        return CategoryMapper.toCategoryDto(category);
+        return mapper.toCategoryDto(category);
     }
 
     @Override
     @Transactional
     public void delete(Long catId) {
         Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
+                .orElseThrow(()
+                        -> new CategoryNotFoundException(catId));
         try {
             categoryRepository.deleteById(catId);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException("The category is not empty");
+            throw new ConflictException(e.getMessage());
         }
         log.debug("Category deleted: {}", catId);
     }
@@ -70,14 +86,15 @@ public class CategoryServiceImpl implements CategoryService {
     public List<CategoryDto> getAll(int from, int size) {
         PageRequest page = PageRequest.of(from / size, size);
         return categoryRepository.findAll(page).getContent().stream()
-                .map(CategoryMapper::toCategoryDto)
+                .map(mapper::toCategoryDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public CategoryDto getById(Long catId) {
         Category category = categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
-        return CategoryMapper.toCategoryDto(category);
+                .orElseThrow(()
+                        -> new CategoryNotFoundException(catId));
+        return mapper.toCategoryDto(category);
     }
 }

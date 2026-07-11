@@ -11,10 +11,10 @@ import ru.practicum.ewm.compilations.dto.UpdateCompilationRequest;
 import ru.practicum.ewm.compilations.mappers.CompilationMapper;
 import ru.practicum.ewm.compilations.models.Compilation;
 import ru.practicum.ewm.compilations.models.CompilationEvent;
-import ru.practicum.ewm.compilations.models.EventDummy;
 import ru.practicum.ewm.compilations.repository.CompilationRepository;
-import ru.practicum.ewm.compilations.repository.EventDummyRepository;
-import ru.practicum.ewm.exceptions.CompilationNotFoundException;
+import ru.practicum.ewm.common.exception.CompilationNotFoundException;
+import ru.practicum.ewm.event.model.Event;
+import ru.practicum.ewm.event.repository.EventRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,15 +25,16 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
-    private final EventDummyRepository eventRepository;
+    private final EventRepository eventRepository;
     private final CompilationRepository compilationRepository;
+    private final CompilationMapper mapper;
 
     @Override
     @Transactional
     public CompilationDtoResponse create(NewCompilationDto dto) {
         log.debug("CompilationService->create: {}", dto);
-        List<EventDummy> events = getEvents(dto.getEventIds());
-        Compilation compilation = CompilationMapper.toModel(dto);
+        List<Event> events = eventRepository.findByIdIn(dto.getEventIds());
+        Compilation compilation = mapper.toModel(dto);
 
         if (compilation.getEvents() == null) {
             compilation.setEvents(new ArrayList<>());
@@ -41,7 +42,7 @@ public class CompilationServiceImpl implements CompilationService {
         createCompilationEvents(compilation, events);
 
         Compilation result = compilationRepository.save(compilation);
-        return CompilationMapper.toDto(result);
+        return mapper.toDto(result);
     }
 
     @Override
@@ -63,7 +64,8 @@ public class CompilationServiceImpl implements CompilationService {
 
         if (dto.getEventIds() != null) {
             compilation.getEvents().clear();
-            List<EventDummy> events = getEvents(dto.getEventIds());
+            List<Event> events = eventRepository
+                    .findByIdIn(dto.getEventIds());
             createCompilationEvents(compilation, events);
         }
 
@@ -71,19 +73,20 @@ public class CompilationServiceImpl implements CompilationService {
             compilation.setPinned(dto.getPinned());
         }
 
-        if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
+        if (dto.getTitle() != null && !dto.getTitle().trim().isEmpty()) {
             compilation.setTitle(dto.getTitle());
         }
 
         Compilation result = compilationRepository.save(compilation);
-        return CompilationMapper.toDto(result);
+        return mapper.toDto(result);
     }
 
     @Override
     public List<CompilationDtoResponse> getCompilations(Boolean pinned, Pageable pageable) {
         log.debug("CompilationService->get pinned={}, pageable={}", pinned, pageable);
-        return compilationRepository.findWithOffset(pinned, pageable).stream()
-                .map(CompilationMapper::toDto)
+        return compilationRepository.findWithOffset(pinned, pageable)
+                .stream()
+                .map(mapper::toDto)
                 .toList();
     }
 
@@ -92,16 +95,10 @@ public class CompilationServiceImpl implements CompilationService {
         log.debug("CompilationService->getById id={}", compId);
         Compilation result = compilationRepository.findById(compId)
                 .orElseThrow(() -> new CompilationNotFoundException(compId));
-        return CompilationMapper.toDto(result);
+        return mapper.toDto(result);
     }
 
-    private List<EventDummy> getEvents(List<Long> eventIds) {
-        return (eventIds == null || eventIds.isEmpty()) ?
-                Collections.emptyList()
-                : eventRepository.findByIdIn(eventIds);
-    }
-
-    private void createCompilationEvents(Compilation compilation, List<EventDummy> events) {
+    private void createCompilationEvents(Compilation compilation, List<Event> events) {
         events.forEach(event -> compilation.getEvents().add(
                 CompilationEvent.builder()
                         .compilation(compilation)
