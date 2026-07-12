@@ -1,5 +1,6 @@
 package ru.practicum.ewm.event.mapper;
 
+import org.springframework.stereotype.Component;
 import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.event.dto.*;
@@ -12,11 +13,12 @@ import ru.practicum.ewm.user.model.User;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Component
 public class EventMapper {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public static Event toEvent(NewEventDto dto, Category category, User initiator) {
+    public Event toEvent(NewEventDto dto, Category category, User initiator) {
         return Event.builder()
                 .annotation(dto.getAnnotation())
                 .category(category)
@@ -33,7 +35,7 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventFullDto toEventFullDto(Event event, Long views, Long confirmedRequests) {
+    public EventFullDto toEventFullDto(Event event, Long views, Long confirmedRequests) {
         return EventFullDto.builder()
                 .id(event.getId())
                 .annotation(event.getAnnotation())

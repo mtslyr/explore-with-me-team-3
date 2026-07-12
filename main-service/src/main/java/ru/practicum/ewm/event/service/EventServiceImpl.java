@@ -5,20 +5,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.category.exception.CategoryNotFoundException;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
+import ru.practicum.ewm.common.util.EventUtil;
 import ru.practicum.ewm.event.dto.*;
+import ru.practicum.ewm.event.exception.EventNotFoundException;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.exception.ConflictException;
-import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.exception.ValidationException;
+import ru.practicum.ewm.common.exception.ConflictException;
+import ru.practicum.ewm.common.exception.ValidationException;
 import ru.practicum.ewm.request.model.RequestStatus;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.stats.clients.StatsClient;
 import ru.practicum.ewm.stats.dto.StatHitResponseElement;
+import ru.practicum.ewm.user.exception.UserNotFoundException;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
 
@@ -39,60 +42,62 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
-    private final ParticipationRequestRepository requestRepository;
-    private final StatsClient statsClient;
+    private final EventUtil eventUtil;
+    private final EventMapper mapper;
 
     @Override
     @Transactional
     public EventFullDto create(Long userId, NewEventDto dto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         Category category = categoryRepository.findById(dto.getCategory())
-                .orElseThrow(() -> new NotFoundException("Category with id=" + dto.getCategory() + " was not found"));
+                .orElseThrow(() -> new CategoryNotFoundException(dto.getCategory()));
 
         LocalDateTime eventDate = LocalDateTime.parse(dto.getEventDate(), FORMATTER);
         if (eventDate.isBefore(LocalDateTime.now().plusHours(HOURS_BEFORE_EVENT))) {
             throw new ValidationException("Field: eventDate. Error: должно содержать дату, которая еще не наступила. Value: " + dto.getEventDate());
         }
 
-        Event event = EventMapper.toEvent(dto, category, user);
+        Event event = mapper.toEvent(dto, category, user);
         event = eventRepository.save(event);
         log.debug("Event created: {} by user {}", event.getId(), userId);
-        return EventMapper.toEventFullDto(event, 0L, 0L);
+        return mapper.toEventFullDto(event, 0L, 0L);
     }
 
     @Override
     public List<EventShortDto> getAllByUser(Long userId, int from, int size) {
         userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         PageRequest page = PageRequest.of(from / size, size);
         List<Event> events = eventRepository.findByInitiatorId(userId, page).getContent();
         return events.stream()
-                .map(e -> EventMapper.toEventShortDto(e, getViews(e.getId()), getConfirmedRequests(e.getId())))
+                .map(e -> mapper.toEventShortDto(e,
+                        eventUtil.getViews(e.getId()),
+                        eventUtil.getConfirmedRequests(e.getId())))
                 .collect(Collectors.toList());
     }
 
     @Override
     public EventFullDto getByUserAndEvent(Long userId, Long eventId) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         if (!event.getInitiator().getId().equals(userId)) {
-            throw new NotFoundException("Event with id=" + eventId + " was not found");
+            throw new EventNotFoundException(eventId);
         }
-        return EventMapper.toEventFullDto(event, getViews(eventId), getConfirmedRequests(eventId));
+        return mapper.toEventFullDto(event, eventUtil.getViews(eventId), eventUtil.getConfirmedRequests(eventId));
     }
 
     @Override
     @Transactional
     public EventFullDto updateByUser(Long userId, Long eventId, UpdateEventUserRequest dto) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+                .orElseThrow(() -> new EventNotFoundException(eventId));
 
         if (!event.getInitiator().getId().equals(userId)) {
-            throw new NotFoundException("Event with id=" + eventId + " was not found");
+            throw new EventNotFoundException(eventId);
         }
 
         if (event.getState() == EventState.PUBLISHED) {
@@ -109,7 +114,7 @@ public class EventServiceImpl implements EventService {
         Category category = null;
         if (dto.getCategory() != null) {
             category = categoryRepository.findById(dto.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Category with id=" + dto.getCategory() + " was not found"));
+                    .orElseThrow(() -> new CategoryNotFoundException(dto.getCategory()));
         }
 
         EventMapper.updateEventFromUserRequest(event, dto, category);
@@ -129,7 +134,7 @@ public class EventServiceImpl implements EventService {
 
         event = eventRepository.save(event);
         log.debug("Event updated by user: {}", eventId);
-        return EventMapper.toEventFullDto(event, getViews(eventId), getConfirmedRequests(eventId));
+        return mapper.toEventFullDto(event, eventUtil.getViews(eventId), eventUtil.getConfirmedRequests(eventId));
     }
 
     @Override
@@ -146,7 +151,7 @@ public class EventServiceImpl implements EventService {
         PageRequest page = PageRequest.of(from / size, size);
         List<Event> events = eventRepository.findEventsByAdmin(users, stateEnums, categories, start, end, page);
         return events.stream()
-                .map(e -> EventMapper.toEventFullDto(e, getViews(e.getId()), getConfirmedRequests(e.getId())))
+                .map(e -> mapper.toEventFullDto(e, eventUtil.getViews(e.getId()), eventUtil.getConfirmedRequests(e.getId())))
                 .collect(Collectors.toList());
     }
 
@@ -154,12 +159,12 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public EventFullDto updateByAdmin(Long eventId, UpdateEventAdminRequest dto) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+                .orElseThrow(() -> new EventNotFoundException(eventId));
 
         Category category = null;
         if (dto.getCategory() != null) {
             category = categoryRepository.findById(dto.getCategory())
-                    .orElseThrow(() -> new NotFoundException("Category with id=" + dto.getCategory() + " was not found"));
+                    .orElseThrow(() -> new CategoryNotFoundException(dto.getCategory()));
         }
 
         if (dto.getEventDate() != null) {
@@ -196,7 +201,7 @@ public class EventServiceImpl implements EventService {
 
         event = eventRepository.save(event);
         log.debug("Event updated by admin: {}", eventId);
-        return EventMapper.toEventFullDto(event, getViews(eventId), getConfirmedRequests(eventId));
+        return mapper.toEventFullDto(event, eventUtil.getViews(eventId), eventUtil.getConfirmedRequests(eventId));
     }
 
     @Override
@@ -216,12 +221,12 @@ public class EventServiceImpl implements EventService {
 
         List<EventShortDto> result = new ArrayList<>();
         for (Event e : events) {
-            long confirmed = getConfirmedRequests(e.getId());
+            long confirmed = eventUtil.getConfirmedRequests(e.getId());
             if (Boolean.TRUE.equals(onlyAvailable) && e.getParticipantLimit() != 0
                     && confirmed >= e.getParticipantLimit()) {
                 continue;
             }
-            result.add(EventMapper.toEventShortDto(e, getViews(e.getId()), confirmed));
+            result.add(EventMapper.toEventShortDto(e, eventUtil.getViews(e.getId()), confirmed));
         }
 
         if ("VIEWS".equals(sort)) {
@@ -234,27 +239,8 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getPublishedById(Long id) {
         Event event = eventRepository.findByIdAndState(id, EventState.PUBLISHED)
-                .orElseThrow(() -> new NotFoundException("Event with id=" + id + " was not found"));
+                .orElseThrow(() -> new EventNotFoundException(id));
 
-        return EventMapper.toEventFullDto(event, getViews(id), getConfirmedRequests(id));
-    }
-
-    private long getConfirmedRequests(Long eventId) {
-        return requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
-    }
-
-    private long getViews(Long eventId) {
-        try {
-            List<StatHitResponseElement> stats = statsClient.getStats(
-                    LocalDateTime.of(2020, 1, 1, 0, 0),
-                    LocalDateTime.now(),
-                    List.of("/events/" + eventId),
-                    true
-            );
-            return stats.isEmpty() ? 0 : stats.getFirst().getHits();
-        } catch (Exception e) {
-            log.warn("Failed to get views for event {}: {}", eventId, e.getMessage());
-            return 0;
-        }
+        return mapper.toEventFullDto(event, eventUtil.getViews(id), eventUtil.getConfirmedRequests(id));
     }
 }
