@@ -13,7 +13,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.ewm.stats.base.BaseClient;
 import ru.practicum.ewm.stats.dto.StatHitResponseElement;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -48,7 +47,7 @@ public class StatsClient extends BaseClient {
             }
         }
 
-        URI uri = builder.build().encode(StandardCharsets.UTF_8).toUri();
+        String uri = builder.build().encode(StandardCharsets.UTF_8).toUriString();
 
         ResponseEntity<List<StatHitResponseElement>> response = rest.exchange(
                 uri,
