@@ -136,7 +136,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventFullDto> getByAdmin(List<Long> users, List<String> states, List<Long> categories,
-                                          String rangeStart, String rangeEnd, int from, int size) {
+                                         String rangeStart, String rangeEnd, int from, int size) {
         List<EventState> stateEnums = null;
         if (states != null && !states.isEmpty()) {
             stateEnums = states.stream().map(EventState::valueOf).collect(Collectors.toList());
@@ -206,8 +206,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getPublished(String text, List<Long> categories, Boolean paid,
-                                             String rangeStart, String rangeEnd, Boolean onlyAvailable,
-                                             String sort, int from, int size) {
+                                            String rangeStart, String rangeEnd, Boolean onlyAvailable,
+                                            String sort, int from, int size) {
         LocalDateTime start = rangeStart != null ? LocalDateTime.parse(rangeStart, FORMATTER) : null;
         LocalDateTime end = rangeEnd != null ? LocalDateTime.parse(rangeEnd, FORMATTER) : null;
 

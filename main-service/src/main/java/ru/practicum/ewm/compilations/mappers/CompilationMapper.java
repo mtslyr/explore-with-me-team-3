@@ -7,13 +7,11 @@ import ru.practicum.ewm.compilations.dto.CompilationDtoResponse;
 import ru.practicum.ewm.compilations.dto.NewCompilationDto;
 import ru.practicum.ewm.compilations.models.Compilation;
 import ru.practicum.ewm.event.mapper.EventMapper;
-import ru.practicum.ewm.event.service.EventService;
 
 @Component
 @RequiredArgsConstructor
 public class CompilationMapper {
     private final EventUtil eventUtil;
-    private final EventMapper eventMapper;
 
     public Compilation toModel(NewCompilationDto dto) {
         return Compilation.builder()
@@ -26,10 +24,10 @@ public class CompilationMapper {
         return CompilationDtoResponse.builder()
                 .events(model.getEvents().stream()
                         .map(event
-                                -> eventMapper.toEventShortDto(
-                                        event.getEvent(),
-                                        eventUtil.getViews(event.getId()),
-                                        eventUtil.getConfirmedRequests(event.getId())))
+                                -> EventMapper.toEventShortDto(
+                                event.getEvent(),
+                                eventUtil.getViews(event.getId()),
+                                eventUtil.getConfirmedRequests(event.getId())))
                         .toList())
                 .id(model.getId())
                 .pinned(model.getPinned())
