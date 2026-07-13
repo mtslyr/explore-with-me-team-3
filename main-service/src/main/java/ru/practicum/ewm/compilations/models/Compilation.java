@@ -6,6 +6,7 @@ import lombok.*;
 import java.util.List;
 
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

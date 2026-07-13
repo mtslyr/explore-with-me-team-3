@@ -17,10 +17,6 @@ import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.common.exception.ConflictException;
 import ru.practicum.ewm.common.exception.ValidationException;
-import ru.practicum.ewm.request.model.RequestStatus;
-import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
-import ru.practicum.ewm.stats.clients.StatsClient;
-import ru.practicum.ewm.stats.dto.StatHitResponseElement;
 import ru.practicum.ewm.user.exception.UserNotFoundException;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
@@ -139,7 +135,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventFullDto> getByAdmin(List<Long> users, List<String> states, List<Long> categories,
-                                          String rangeStart, String rangeEnd, int from, int size) {
+                                         String rangeStart, String rangeEnd, int from, int size) {
         List<EventState> stateEnums = null;
         if (states != null && !states.isEmpty()) {
             stateEnums = states.stream().map(EventState::valueOf).collect(Collectors.toList());
@@ -206,8 +202,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getPublished(String text, List<Long> categories, Boolean paid,
-                                             String rangeStart, String rangeEnd, Boolean onlyAvailable,
-                                             String sort, int from, int size) {
+                                            String rangeStart, String rangeEnd, Boolean onlyAvailable,
+                                            String sort, int from, int size) {
         LocalDateTime start = rangeStart != null ? LocalDateTime.parse(rangeStart, FORMATTER) : null;
         LocalDateTime end = rangeEnd != null ? LocalDateTime.parse(rangeEnd, FORMATTER) : null;
 

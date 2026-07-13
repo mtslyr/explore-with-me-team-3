@@ -6,8 +6,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import ru.practicum.ewm.common.ErrorResponse;
 
-import java.util.List;
-
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ApiException extends RuntimeException {

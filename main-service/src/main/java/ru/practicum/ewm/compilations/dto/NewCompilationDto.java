@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @ToString
 public class NewCompilationDto {
-    private List<Long> eventIds;
+    private List<Long> events;
     private Boolean pinned;
     @NotBlank(message = "title is mandatory")
     @Size(min = 1, max = 50, message = "title should be shorter than 50")

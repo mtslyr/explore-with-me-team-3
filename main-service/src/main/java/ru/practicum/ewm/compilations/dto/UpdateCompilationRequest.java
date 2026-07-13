@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @ToString
 public class UpdateCompilationRequest {
-    private List<Long> eventIds;
+    private List<Long> events;
     private Boolean pinned;
     @Size(min = 1, max = 50, message = "title should be shorter than 50")
     private String title;

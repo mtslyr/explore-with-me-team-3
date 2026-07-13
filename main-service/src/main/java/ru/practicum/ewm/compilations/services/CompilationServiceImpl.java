@@ -17,7 +17,6 @@ import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.repository.EventRepository;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -33,15 +32,23 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public CompilationDtoResponse create(NewCompilationDto dto) {
         log.debug("CompilationService->create: {}", dto);
-        List<Event> events = eventRepository.findByIdIn(dto.getEventIds());
+        List<Event> events = eventRepository.findByIdIn(dto.getEvents());
+
         Compilation compilation = mapper.toModel(dto);
 
         if (compilation.getEvents() == null) {
             compilation.setEvents(new ArrayList<>());
         }
+
+        if (compilation.getPinned() == null) {
+            compilation.setPinned(false);
+        }
+
         createCompilationEvents(compilation, events);
 
         Compilation result = compilationRepository.save(compilation);
+
+        log.debug("CompilationService->create result: {}", result);
         return mapper.toDto(result);
     }
 
@@ -62,10 +69,10 @@ public class CompilationServiceImpl implements CompilationService {
                 .orElseThrow(()
                         -> new CompilationNotFoundException(compId));
 
-        if (dto.getEventIds() != null) {
+        if (dto.getEvents() != null) {
             compilation.getEvents().clear();
             List<Event> events = eventRepository
-                    .findByIdIn(dto.getEventIds());
+                    .findByIdIn(dto.getEvents());
             createCompilationEvents(compilation, events);
         }
 
