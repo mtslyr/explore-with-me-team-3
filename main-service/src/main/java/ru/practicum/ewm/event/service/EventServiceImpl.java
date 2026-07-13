@@ -145,6 +145,10 @@ public class EventServiceImpl implements EventService {
         LocalDateTime start = rangeStart != null ? LocalDateTime.parse(rangeStart, FORMATTER) : null;
         LocalDateTime end = rangeEnd != null ? LocalDateTime.parse(rangeEnd, FORMATTER) : null;
 
+        if (start != null && end != null && start.isAfter(end)) {
+            throw new ValidationException("Field: rangeStart. Error: start must be before end. Value: rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd);
+        }
+
         PageRequest page = PageRequest.of(from / size, size);
         List<Event> events = eventRepository.findAll(
                 EventSpecification.eventsByAdmin(users, stateEnums, categories, start, end),
@@ -210,6 +214,10 @@ public class EventServiceImpl implements EventService {
                                             String sort, int from, int size) {
         LocalDateTime start = rangeStart != null ? LocalDateTime.parse(rangeStart, FORMATTER) : null;
         LocalDateTime end = rangeEnd != null ? LocalDateTime.parse(rangeEnd, FORMATTER) : null;
+
+        if (start != null && end != null && start.isAfter(end)) {
+            throw new ValidationException("Field: rangeStart. Error: start must be before end. Value: rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd);
+        }
 
         if (start == null && end == null) {
             start = LocalDateTime.now();
