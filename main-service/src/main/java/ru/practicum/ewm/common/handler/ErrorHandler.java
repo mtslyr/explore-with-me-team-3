@@ -37,4 +37,14 @@ public class ErrorHandler {
                 .message(e.getMessage())
                 .build();
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationExceptions(MethodArgumentNotValidException e) {
+        return ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.name())
+                .reason("Error occurred.")
+                .message(e.getMessage())
+                .build();
+    }
 }

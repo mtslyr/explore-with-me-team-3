@@ -13,7 +13,6 @@ import ru.practicum.ewm.event.service.EventService;
 @RequiredArgsConstructor
 public class CompilationMapper {
     private final EventUtil eventUtil;
-    private final EventMapper eventMapper;
 
     public Compilation toModel(NewCompilationDto dto) {
         return Compilation.builder()
@@ -26,7 +25,7 @@ public class CompilationMapper {
         return CompilationDtoResponse.builder()
                 .events(model.getEvents().stream()
                         .map(event
-                                -> eventMapper.toEventShortDto(
+                                -> EventMapper.toEventShortDto(
                                         event.getEvent(),
                                         eventUtil.getViews(event.getId()),
                                         eventUtil.getConfirmedRequests(event.getId())))
