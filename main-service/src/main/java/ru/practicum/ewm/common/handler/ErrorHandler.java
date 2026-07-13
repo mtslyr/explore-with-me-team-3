@@ -1,21 +1,13 @@
 package ru.practicum.ewm.common.handler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import ru.practicum.ewm.common.exception.ApiException;
-import ru.practicum.ewm.common.exception.ConflictException;
 import ru.practicum.ewm.common.ErrorResponse;
-import ru.practicum.ewm.common.exception.NotFoundException;
-import ru.practicum.ewm.common.exception.ValidationException;
-
-import java.util.Collections;
 
 @Slf4j
 @RestControllerAdvice

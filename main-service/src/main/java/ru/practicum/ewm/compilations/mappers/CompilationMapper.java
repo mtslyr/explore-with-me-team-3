@@ -7,7 +7,6 @@ import ru.practicum.ewm.compilations.dto.CompilationDtoResponse;
 import ru.practicum.ewm.compilations.dto.NewCompilationDto;
 import ru.practicum.ewm.compilations.models.Compilation;
 import ru.practicum.ewm.event.mapper.EventMapper;
-import ru.practicum.ewm.event.service.EventService;
 
 @Component
 @RequiredArgsConstructor
@@ -26,9 +25,9 @@ public class CompilationMapper {
                 .events(model.getEvents().stream()
                         .map(event
                                 -> EventMapper.toEventShortDto(
-                                        event.getEvent(),
-                                        eventUtil.getViews(event.getId()),
-                                        eventUtil.getConfirmedRequests(event.getId())))
+                                event.getEvent(),
+                                eventUtil.getViews(event.getId()),
+                                eventUtil.getConfirmedRequests(event.getId())))
                         .toList())
                 .id(model.getId())
                 .pinned(model.getPinned())
