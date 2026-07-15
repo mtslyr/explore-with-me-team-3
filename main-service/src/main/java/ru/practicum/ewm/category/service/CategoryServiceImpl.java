@@ -38,7 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = mapper.toCategory(dto);
 
         try {
-            category = categoryRepository.save(category);
+            category = categoryRepository.saveAndFlush(category);
         } catch (DataIntegrityViolationException e) {
             throw new CategoryAlreadyExistException(dto.getName());
         }
@@ -59,7 +59,7 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         try {
-            category = categoryRepository.save(category);
+            category = categoryRepository.saveAndFlush(category);
         } catch (DataIntegrityViolationException e) {
             throw new CategoryAlreadyExistException(dto.getName());
         }
@@ -76,6 +76,7 @@ public class CategoryServiceImpl implements CategoryService {
                         -> new CategoryNotFoundException(catId));
         try {
             categoryRepository.deleteById(catId);
+            categoryRepository.flush();
         } catch (DataIntegrityViolationException e) {
             throw new ConflictException(e.getMessage());
         }
