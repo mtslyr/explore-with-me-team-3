@@ -65,7 +65,7 @@ public class RequestServiceImpl implements RequestService {
             }
         }
 
-        RequestStatus status = event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED;
+        RequestStatus status = event.getParticipantLimit() != 0 && event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED;
 
         ParticipationRequest request = ParticipationRequest.builder()
                 .created(LocalDateTime.now())

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -17,9 +18,19 @@ public class ErrorHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(ApiException e) {
         log.info("[API EXCEPTION] {}", e.getErrorResponse().toString());
-        ErrorResponse response = e.getErrorResponse();
-        return ResponseEntity.status(response.getSc())
-                .body(response);
+        HttpStatus status = HttpStatus.valueOf(e.getErrorResponse().getStatus());
+        return new ResponseEntity<>(e.getErrorResponse(), status);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingParams(MissingServletRequestParameterException e) {
+        log.warn("400 BAD_REQUEST: ", e);
+        return ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.name())
+                .reason("Incorrectly made request.")
+                .message(e.getMessage())
+                .build();
     }
 
     @ExceptionHandler(Throwable.class)

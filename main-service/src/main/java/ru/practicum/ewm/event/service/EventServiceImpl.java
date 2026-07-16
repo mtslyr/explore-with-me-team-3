@@ -15,6 +15,7 @@ import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.event.repository.EventSpecification;
 import ru.practicum.ewm.common.exception.ConflictException;
 import ru.practicum.ewm.common.exception.ValidationException;
 import ru.practicum.ewm.user.exception.UserNotFoundException;
@@ -144,8 +145,15 @@ public class EventServiceImpl implements EventService {
         LocalDateTime start = rangeStart != null ? LocalDateTime.parse(rangeStart, FORMATTER) : null;
         LocalDateTime end = rangeEnd != null ? LocalDateTime.parse(rangeEnd, FORMATTER) : null;
 
+        if (start != null && end != null && start.isAfter(end)) {
+            throw new ValidationException("Field: rangeStart. Error: start must be before end. Value: rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd);
+        }
+
         PageRequest page = PageRequest.of(from / size, size);
-        List<Event> events = eventRepository.findEventsByAdmin(users, stateEnums, categories, start, end, page);
+        List<Event> events = eventRepository.findAll(
+                EventSpecification.eventsByAdmin(users, stateEnums, categories, start, end),
+                page
+        ).getContent();
         return events.stream()
                 .map(e -> mapper.toEventFullDto(e, eventUtil.getViews(e.getId()), eventUtil.getConfirmedRequests(e.getId())))
                 .collect(Collectors.toList());
@@ -207,13 +215,19 @@ public class EventServiceImpl implements EventService {
         LocalDateTime start = rangeStart != null ? LocalDateTime.parse(rangeStart, FORMATTER) : null;
         LocalDateTime end = rangeEnd != null ? LocalDateTime.parse(rangeEnd, FORMATTER) : null;
 
+        if (start != null && end != null && start.isAfter(end)) {
+            throw new ValidationException("Field: rangeStart. Error: start must be before end. Value: rangeStart=" + rangeStart + ", rangeEnd=" + rangeEnd);
+        }
+
         if (start == null && end == null) {
             start = LocalDateTime.now();
         }
 
         PageRequest page = PageRequest.of(from / size, size);
-        List<Event> events = eventRepository.findPublishedEvents(
-                EventState.PUBLISHED, text, categories, paid, start, end, page);
+        List<Event> events = eventRepository.findAll(
+                EventSpecification.publishedEvents(text, categories, paid, start, end),
+                page
+        ).getContent();
 
         List<EventShortDto> result = new ArrayList<>();
         for (Event e : events) {
