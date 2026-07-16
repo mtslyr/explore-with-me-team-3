@@ -2,6 +2,7 @@ package ru.practicum.ewm.common.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,9 +15,11 @@ import ru.practicum.ewm.common.ErrorResponse;
 public class ErrorHandler {
 
     @ExceptionHandler(ApiException.class)
-    public ErrorResponse handleApiException(ApiException e) {
+    public ResponseEntity<ErrorResponse> handleApiException(ApiException e) {
         log.info("[API EXCEPTION] {}", e.getErrorResponse().toString());
-        return e.getErrorResponse();
+        ErrorResponse response = e.getErrorResponse();
+        return ResponseEntity.status(response.getSc())
+                .body(response);
     }
 
     @ExceptionHandler(Throwable.class)

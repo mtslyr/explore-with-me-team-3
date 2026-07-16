@@ -17,6 +17,7 @@ public class ApiException extends RuntimeException {
                 .status(status.name())
                 .reason(reason)
                 .message(message)
+                .sc(status)
                 .build();
     }
 }
