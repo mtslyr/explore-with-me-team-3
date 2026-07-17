@@ -26,10 +26,10 @@ public class EventPublicController {
                                             @RequestParam(required = false) Boolean paid,
                                             @RequestParam(required = false) String rangeStart,
                                             @RequestParam(required = false) String rangeEnd,
-                                            @RequestParam(defaultValue = "false") Boolean onlyAvailable,
+                                            @RequestParam(required = false) Boolean onlyAvailable,
                                             @RequestParam(required = false) String sort,
-                                            @RequestParam(defaultValue = "0") int from,
-                                            @RequestParam(defaultValue = "10") int size,
+                                            @RequestParam(defaultValue = "0") Integer from,
+                                            @RequestParam(defaultValue = "10") Integer size,
                                             HttpServletRequest request) {
         saveHit(request);
         return eventService.getPublished(text, categories, paid, rangeStart, rangeEnd,

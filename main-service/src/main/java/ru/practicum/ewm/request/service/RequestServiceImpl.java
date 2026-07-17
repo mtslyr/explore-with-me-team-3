@@ -2,6 +2,7 @@ package ru.practicum.ewm.request.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.event.dto.EventRequestStatusUpdateRequest;
@@ -23,6 +24,7 @@ import ru.practicum.ewm.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -137,13 +139,18 @@ public class RequestServiceImpl implements RequestService {
         long confirmed = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
         long limit = event.getParticipantLimit();
 
+        List<ParticipationRequest> requests = requestRepository.findByIdIn(dto.getRequestIds());
+        if (requests.size() != dto.getRequestIds().size()) {
+            Collection<Long> notFound = CollectionUtils.subtract(
+                    dto.getRequestIds(),
+                    requests.stream().map(ParticipationRequest::getId).toList());
+            throw new RequestNotFoundException(notFound);
+        }
+
         List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
         List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
 
-        for (Long requestId : dto.getRequestIds()) {
-            ParticipationRequest request = requestRepository.findById(requestId)
-                    .orElseThrow(() -> new RequestNotFoundException(requestId));
-
+        for (ParticipationRequest request : requests) {
             if (request.getStatus() != RequestStatus.PENDING) {
                 throw new ConflictException("Request must have status PENDING");
             }
@@ -151,7 +158,6 @@ public class RequestServiceImpl implements RequestService {
             if ("CONFIRMED".equals(dto.getStatus())) {
                 if (confirmed >= limit) {
                     request.setStatus(RequestStatus.REJECTED);
-                    requestRepository.save(request);
                     rejectedRequests.add(mapper.toRequestDto(request));
                     continue;
                 }
@@ -160,9 +166,11 @@ public class RequestServiceImpl implements RequestService {
             } else {
                 request.setStatus(RequestStatus.REJECTED);
             }
+        }
 
-            request = requestRepository.save(request);
+        requestRepository.saveAll(requests);
 
+        for (ParticipationRequest request : requests) {
             if (request.getStatus() == RequestStatus.CONFIRMED) {
                 confirmedRequests.add(mapper.toRequestDto(request));
             } else {
@@ -176,9 +184,9 @@ public class RequestServiceImpl implements RequestService {
                     .toList();
             for (ParticipationRequest r : pending) {
                 r.setStatus(RequestStatus.REJECTED);
-                requestRepository.save(r);
-                rejectedRequests.add(mapper.toRequestDto(r));
             }
+            requestRepository.saveAll(pending);
+            rejectedRequests.addAll(pending.stream().map(mapper::toRequestDto).toList());
         }
 
         log.debug("Requests confirmed: {}, rejected: {}", confirmedRequests.size(), rejectedRequests.size());

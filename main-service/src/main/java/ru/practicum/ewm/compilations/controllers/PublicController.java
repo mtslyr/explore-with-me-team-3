@@ -29,9 +29,9 @@ public class PublicController {
     public ResponseEntity<List<CompilationDtoResponse>> get(
             @RequestParam(name = PARAM_PINNED, required = false) Boolean pinned,
             @RequestParam(name = PARAM_FROM, required = false, defaultValue = "0")
-            @PositiveOrZero int from,
+            @PositiveOrZero Integer from,
             @RequestParam(name = PARAM_SIZE, required = false, defaultValue = "10")
-            @Positive int size
+            @Positive Integer size
     ) {
 
         Pageable pageable = PageRequest.of(from / size, size);
@@ -42,7 +42,7 @@ public class PublicController {
     @GetMapping("/{compId}")
     public ResponseEntity<CompilationDtoResponse> getById(
             @PathVariable(name = "compId")
-            long compId
+            Long compId
     ) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(compilationsService.getById(compId));

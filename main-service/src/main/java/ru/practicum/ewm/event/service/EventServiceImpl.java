@@ -33,6 +33,9 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
 
+    private static final String PUBLISH_EVENT = "PUBLISH_EVENT";
+    private static final String REJECT_EVENT = "REJECT_EVENT";
+
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final long HOURS_BEFORE_EVENT = 2;
 
@@ -63,7 +66,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventShortDto> getAllByUser(Long userId, int from, int size) {
+    public List<EventShortDto> getAllByUser(Long userId, Integer from, Integer size) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -136,7 +139,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventFullDto> getByAdmin(List<Long> users, List<String> states, List<Long> categories,
-                                         String rangeStart, String rangeEnd, int from, int size) {
+                                         String rangeStart, String rangeEnd, Integer from, Integer size) {
         List<EventState> stateEnums = null;
         if (states != null && !states.isEmpty()) {
             stateEnums = states.stream().map(EventState::valueOf).collect(Collectors.toList());
@@ -182,7 +185,7 @@ public class EventServiceImpl implements EventService {
 
         if (dto.getStateAction() != null) {
             switch (dto.getStateAction()) {
-                case "PUBLISH_EVENT":
+                case PUBLISH_EVENT:
                     if (event.getState() != EventState.PENDING) {
                         throw new ConflictException("Cannot publish the event because it's not in the right state: " + event.getState());
                     }
@@ -192,7 +195,7 @@ public class EventServiceImpl implements EventService {
                     event.setState(EventState.PUBLISHED);
                     event.setPublishedOn(LocalDateTime.now());
                     break;
-                case "REJECT_EVENT":
+                case REJECT_EVENT:
                     if (event.getState() == EventState.PUBLISHED) {
                         throw new ConflictException("Cannot reject the event because it's already published");
                     }
@@ -211,7 +214,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventShortDto> getPublished(String text, List<Long> categories, Boolean paid,
                                             String rangeStart, String rangeEnd, Boolean onlyAvailable,
-                                            String sort, int from, int size) {
+                                            String sort, Integer from, Integer size) {
         LocalDateTime start = rangeStart != null ? LocalDateTime.parse(rangeStart, FORMATTER) : null;
         LocalDateTime end = rangeEnd != null ? LocalDateTime.parse(rangeEnd, FORMATTER) : null;
 

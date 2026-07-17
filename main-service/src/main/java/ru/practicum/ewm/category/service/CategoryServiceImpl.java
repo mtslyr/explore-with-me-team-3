@@ -31,7 +31,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDto create(NewCategoryDto dto) {
-        if (dto.getName() == null || dto.getName().trim().isEmpty()) {
+        if (dto.getName() == null || dto.getName().isBlank()) {
             throw new ValidationException("Field: name. Error: must not be blank. Value: null");
         }
 
@@ -40,7 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
         try {
             category = categoryRepository.saveAndFlush(category);
         } catch (DataIntegrityViolationException e) {
-            throw new CategoryAlreadyExistException(dto.getName());
+            throw new CategoryAlreadyExistException(e.getMessage());
         }
 
         log.debug("Category created: {}", category.getId());
@@ -74,17 +74,13 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(()
                         -> new CategoryNotFoundException(catId));
-        try {
-            categoryRepository.deleteById(catId);
-            categoryRepository.flush();
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(e.getMessage());
-        }
+        categoryRepository.deleteById(catId);
+        categoryRepository.flush();
         log.debug("Category deleted: {}", catId);
     }
 
     @Override
-    public List<CategoryDto> getAll(int from, int size) {
+    public List<CategoryDto> getAll(Integer from, Integer size) {
         PageRequest page = PageRequest.of(from / size, size);
         return categoryRepository.findAll(page).getContent().stream()
                 .map(mapper::toCategoryDto)
