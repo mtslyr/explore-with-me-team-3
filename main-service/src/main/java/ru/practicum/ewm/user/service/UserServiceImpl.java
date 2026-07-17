@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> getAll(List<Long> ids, int from, int size) {
+    public List<UserDto> getAll(List<Long> ids, Integer from, Integer size) {
         PageRequest page = PageRequest.of(from / size, size);
         List<User> users;
         if (ids != null && !ids.isEmpty()) {

@@ -12,5 +12,5 @@ public interface StatsService {
     List<StatHitResponseElement> getStats(LocalDateTime start,
                                           LocalDateTime end,
                                           List<String> uris,
-                                          boolean unique);
+                                          Boolean unique);
 }
