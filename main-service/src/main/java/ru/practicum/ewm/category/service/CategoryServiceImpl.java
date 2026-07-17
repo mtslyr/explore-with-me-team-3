@@ -13,7 +13,6 @@ import ru.practicum.ewm.category.exception.CategoryNotFoundException;
 import ru.practicum.ewm.category.mapper.CategoryMapper;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
-import ru.practicum.ewm.common.exception.ConflictException;
 import ru.practicum.ewm.common.exception.ValidationException;
 
 import java.util.List;
