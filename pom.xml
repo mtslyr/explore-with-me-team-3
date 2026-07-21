@@ -26,6 +26,13 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<springdoc.version>1.6.11</springdoc.version>
+		<logbook.version>3.7.2</logbook.version>
+		<maven.checkstyle.plugin.version>3.1.2</maven.checkstyle.plugin.version>
+		<checkstyle.version>10.3</checkstyle.version>
+		<spotbugs.maven.plugin.version>4.8.5.0</spotbugs.maven.plugin.version>
+		<jacoco.maven.plugin.version>0.8.12</jacoco.maven.plugin.version>
+		<spring-web.version>6.2.16</spring-web.version>
+		<commons-collections4.version>4.5.0</commons-collections4.version>
 	</properties>
 
 	<dependencyManagement>
@@ -34,6 +41,11 @@
 				<groupId>org.springdoc</groupId>
 				<artifactId>springdoc-openapi-ui</artifactId>
 				<version>${springdoc.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.zalando</groupId>
+				<artifactId>logbook-spring-boot-starter</artifactId>
+				<version>${logbook.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -57,7 +69,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>3.1.2</version>
+					<version>${maven.checkstyle.plugin.version}</version>
 					<configuration>
 						<configLocation>checkstyle.xml</configLocation>
 						<failOnViolation>true</failOnViolation>
@@ -76,14 +88,14 @@
 						<dependency>
 							<groupId>com.puppycrawl.tools</groupId>
 							<artifactId>checkstyle</artifactId>
-							<version>10.3</version>
+							<version>${checkstyle.version}</version>
 						</dependency>
 					</dependencies>
 				</plugin>
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
 					<artifactId>spotbugs-maven-plugin</artifactId>
-					<version>4.8.5.0</version>
+					<version>${spotbugs.maven.plugin.version}</version>
 					<configuration>
 						<effort>Max</effort>
 						<threshold>High</threshold>
@@ -99,7 +111,7 @@
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.8.12</version>
+					<version>${jacoco.maven.plugin.version}</version>
 					<configuration>
 						<output>file</output>
 					</configuration>

@@ -28,13 +28,13 @@ public class StatsServiceImpl implements StatsService {
     public List<StatHitResponseElement> getStats(LocalDateTime start,
                                                  LocalDateTime end,
                                                  List<String> uris,
-                                                 boolean unique) {
+                                                 Boolean unique) {
         if (start.isAfter(end)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start must be before end");
         }
 
         boolean hasUris = uris != null && !uris.isEmpty();
-        if (unique) {
+        if (Boolean.TRUE.equals(unique)) {
             return hasUris
                     ? repository.findUniqueStats(start, end, uris)
                     : repository.findUniqueStats(start, end);

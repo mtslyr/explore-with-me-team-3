@@ -6,15 +6,13 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.ewm.stats.base.BaseClient;
 import ru.practicum.ewm.stats.dto.StatHitResponseElement;
 
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +27,7 @@ public class StatsClient extends BaseClient {
         super(
                 builder
                         .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
-                        .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
+                        .requestFactory(() -> new JdkClientHttpRequestFactory())
                         .build()
         );
     }
@@ -48,7 +46,7 @@ public class StatsClient extends BaseClient {
             }
         }
 
-        URI uri = builder.build().encode(StandardCharsets.UTF_8).toUri();
+        String uri = builder.build().toUriString();
 
         ResponseEntity<List<StatHitResponseElement>> response = rest.exchange(
                 uri,
