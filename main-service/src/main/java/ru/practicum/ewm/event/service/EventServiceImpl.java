@@ -236,11 +236,19 @@ public class EventServiceImpl implements EventService {
             start = LocalDateTime.now();
         }
 
-        PageRequest page = PageRequest.of(from / size, size);
-        List<Event> events = eventRepository.findAll(
-                EventSpecification.publishedEvents(text, categories, paid, start, end),
-                page
-        ).getContent();
+        boolean ratingSort = "RATING".equals(sort);
+        List<Event> events;
+        if (ratingSort) {
+            events = eventRepository.findAll(
+                    EventSpecification.publishedEvents(text, categories, paid, start, end)
+            );
+        } else {
+            PageRequest page = PageRequest.of(from / size, size);
+            events = eventRepository.findAll(
+                    EventSpecification.publishedEvents(text, categories, paid, start, end),
+                    page
+            ).getContent();
+        }
         Map<Long, RatingStatsDto> ratings = getRatings(events);
 
         List<EventShortDto> result = new ArrayList<>();
@@ -256,8 +264,11 @@ public class EventServiceImpl implements EventService {
 
         if ("VIEWS".equals(sort)) {
             result.sort(Comparator.comparingLong(EventShortDto::getViews));
-        } else if ("RATING".equals(sort)) {
+        } else if (ratingSort) {
             result.sort(Comparator.comparingLong(EventShortDto::getRating).reversed());
+            int startIndex = Math.min(from, result.size());
+            int endIndex = Math.min(startIndex + size, result.size());
+            return new ArrayList<>(result.subList(startIndex, endIndex));
         }
 
         return result;
