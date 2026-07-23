@@ -21,7 +21,7 @@ public interface EventService {
 
     List<EventShortDto> getPublished(String text, List<Long> categories, Boolean paid,
                                       String rangeStart, String rangeEnd, Boolean onlyAvailable,
-                                      String sort, Integer from, Integer size);
+                                      String sort, Integer from, Integer size, Long userId);
 
     EventFullDto getPublishedById(Long id);
 }

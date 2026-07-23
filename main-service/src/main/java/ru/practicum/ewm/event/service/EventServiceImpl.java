@@ -18,6 +18,8 @@ import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.event.repository.EventSpecification;
 import ru.practicum.ewm.common.exception.ConflictException;
 import ru.practicum.ewm.common.exception.ValidationException;
+import ru.practicum.ewm.subscription.model.SubscriptionStatus;
+import ru.practicum.ewm.subscription.repository.SubscriptionRepository;
 import ru.practicum.ewm.user.exception.UserNotFoundException;
 import ru.practicum.ewm.user.model.User;
 import ru.practicum.ewm.user.repository.UserRepository;
@@ -42,6 +44,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final EventUtil eventUtil;
     private final EventMapper mapper;
 
@@ -214,7 +217,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventShortDto> getPublished(String text, List<Long> categories, Boolean paid,
                                             String rangeStart, String rangeEnd, Boolean onlyAvailable,
-                                            String sort, Integer from, Integer size) {
+                                            String sort, Integer from, Integer size, Long userId) {
         LocalDateTime start = rangeStart != null ? LocalDateTime.parse(rangeStart, FORMATTER) : null;
         LocalDateTime end = rangeEnd != null ? LocalDateTime.parse(rangeEnd, FORMATTER) : null;
 
@@ -233,20 +236,39 @@ public class EventServiceImpl implements EventService {
         ).getContent();
 
         List<EventShortDto> result = new ArrayList<>();
+        List<EventShortDto> subscribedEvents = new ArrayList<>();
+        List<EventShortDto> otherEvents = new ArrayList<>();
+
         for (Event e : events) {
             long confirmed = eventUtil.getConfirmedRequests(e.getId());
             if (Boolean.TRUE.equals(onlyAvailable) && e.getParticipantLimit() != 0
                     && confirmed >= e.getParticipantLimit()) {
                 continue;
             }
-            result.add(EventMapper.toEventShortDto(e, eventUtil.getViews(e.getId()), confirmed));
+            EventShortDto dto = EventMapper.toEventShortDto(e, eventUtil.getViews(e.getId()), confirmed);
+            if (isUserSubscribed(userId, e.getInitiator().getId())) {
+                subscribedEvents.add(dto);
+            } else {
+                otherEvents.add(dto);
+            }
         }
 
         if ("VIEWS".equals(sort)) {
-            result.sort(Comparator.comparingLong(EventShortDto::getViews));
+            subscribedEvents.sort(Comparator.comparingLong(EventShortDto::getViews));
+            otherEvents.sort(Comparator.comparingLong(EventShortDto::getViews));
         }
 
+        result.addAll(subscribedEvents);
+        result.addAll(otherEvents);
+
         return result;
+    }
+
+    private boolean isUserSubscribed(Long userId, Long initiatorId) {
+        if (userId == null) {
+            return false;
+        }
+        return subscriptionRepository.existsByFollowerIdAndFollowedIdAndStatus(userId, initiatorId, SubscriptionStatus.CONFIRMED);
     }
 
     @Override

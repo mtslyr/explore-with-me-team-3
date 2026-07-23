@@ -30,10 +30,11 @@ public class EventPublicController {
                                             @RequestParam(required = false) String sort,
                                             @RequestParam(defaultValue = "0") Integer from,
                                             @RequestParam(defaultValue = "10") Integer size,
+                                            @RequestHeader(value = "X-EWM-UserId", required = false) Long userId,
                                             HttpServletRequest request) {
         saveHit(request);
         return eventService.getPublished(text, categories, paid, rangeStart, rangeEnd,
-                onlyAvailable, sort, from, size);
+                onlyAvailable, sort, from, size, userId);
     }
 
     @GetMapping("/events/{id}")
