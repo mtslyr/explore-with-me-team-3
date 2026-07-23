@@ -26,6 +26,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     interface CommentCountView {
         Long getEventId();
+
         Long getCnt();
     }
 }
