@@ -1,0 +1,351 @@
+{
+  "info": {
+    "_postman_id": "cd7e1d0a-19db-4d47-930d-98db117ecf30",
+    "name": "Explore With Me — rating_events",
+    "description": "API tests for event likes, dislikes and rating aggregation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('runId')) {",
+          "    pm.collectionVariables.set('runId', Date.now().toString());",
+          "    const eventDate = new Date(Date.now() + 24 * 60 * 60 * 1000);",
+          "    const pad = value => String(value).padStart(2, '0');",
+          "    pm.collectionVariables.set('eventDate', `${eventDate.getFullYear()}-${pad(eventDate.getMonth() + 1)}-${pad(eventDate.getDate())} ${pad(eventDate.getHours())}:${pad(eventDate.getMinutes())}:${pad(eventDate.getSeconds())}`);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Create event initiator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Rating initiator\",\"email\":\"initiator-{{runId}}@example.com\"}"
+        },
+        "url": "{{baseUrl}}/admin/users"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Initiator created', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('initiatorId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Create rating user",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Rating user\",\"email\":\"rater-{{runId}}@example.com\"}"
+        },
+        "url": "{{baseUrl}}/admin/users"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Rating user created', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('raterId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Create category",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Rating {{runId}}\"}"
+        },
+        "url": "{{baseUrl}}/admin/categories"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Category created', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Create event",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"annotation\":\"An event used to verify event ratings\",\"category\":{{categoryId}},\"description\":\"A sufficiently long description for the event rating feature test\",\"eventDate\":\"{{eventDate}}\",\"location\":{\"lat\":41.311081,\"lon\":69.240562},\"paid\":false,\"participantLimit\":0,\"requestModeration\":false,\"title\":\"Rating feature event\"}"
+        },
+        "url": "{{baseUrl}}/users/{{initiatorId}}/events"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Event created', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('eventId', pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Publish event",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"stateAction\":\"PUBLISH_EVENT\"}"
+        },
+        "url": "{{baseUrl}}/admin/events/{{eventId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Event published', () => pm.response.to.have.status(200));",
+              "pm.test('Initial rating is zero', () => {",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.likes).to.eql(0);",
+              "    pm.expect(body.dislikes).to.eql(0);",
+              "    pm.expect(body.rating).to.eql(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Like event",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/users/{{raterId}}/events/{{eventId}}/like"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Like accepted', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Get liked event",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/events/{{eventId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Liked event has positive rating', () => {",
+              "    pm.response.to.have.status(200);",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.likes).to.eql(1);",
+              "    pm.expect(body.dislikes).to.eql(0);",
+              "    pm.expect(body.rating).to.eql(1);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Replace like with dislike",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/users/{{raterId}}/events/{{eventId}}/dislike"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Dislike accepted', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Get disliked event",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/events/{{eventId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Like was replaced, not duplicated', () => {",
+              "    pm.response.to.have.status(200);",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.likes).to.eql(0);",
+              "    pm.expect(body.dislikes).to.eql(1);",
+              "    pm.expect(body.rating).to.eql(-1);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Delete rating",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/users/{{raterId}}/events/{{eventId}}/rating"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Rating deleted', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Get event after rating deletion",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/events/{{eventId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Rating counters returned to zero', () => {",
+              "    pm.response.to.have.status(200);",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.likes).to.eql(0);",
+              "    pm.expect(body.dislikes).to.eql(0);",
+              "    pm.expect(body.rating).to.eql(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Initiator cannot rate own event",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/users/{{initiatorId}}/events/{{eventId}}/like"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Own event rating is rejected', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Public list supports rating sort",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/events?sort=RATING"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Rating sort returns event rating fields', () => {",
+              "    pm.response.to.have.status(200);",
+              "    const event = pm.response.json().find(item => item.id === Number(pm.collectionVariables.get('eventId')));",
+              "    pm.expect(event).to.exist;",
+              "    pm.expect(event).to.have.property('likes');",
+              "    pm.expect(event).to.have.property('dislikes');",
+              "    pm.expect(event).to.have.property('rating');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
