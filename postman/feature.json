@@ -326,7 +326,7 @@
       "name": "13. Public list supports rating sort",
       "request": {
         "method": "GET",
-        "url": "{{baseUrl}}/events?sort=RATING"
+        "url": "{{baseUrl}}/events?categories={{categoryId}}&sort=RATING"
       },
       "event": [
         {
