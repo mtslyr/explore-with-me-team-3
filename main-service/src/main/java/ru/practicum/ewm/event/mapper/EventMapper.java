@@ -7,6 +7,7 @@ import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.model.Location;
+import ru.practicum.ewm.rating.dto.RatingStatsDto;
 import ru.practicum.ewm.user.dto.UserShortDto;
 import ru.practicum.ewm.user.model.User;
 
@@ -35,7 +36,8 @@ public class EventMapper {
                 .build();
     }
 
-    public EventFullDto toEventFullDto(Event event, Long views, Long confirmedRequests) {
+    public EventFullDto toEventFullDto(Event event, Long views, Long confirmedRequests,
+                                       RatingStatsDto ratingStats) {
         return EventFullDto.builder()
                 .id(event.getId())
                 .annotation(event.getAnnotation())
@@ -53,10 +55,14 @@ public class EventMapper {
                 .state(event.getState().name())
                 .title(event.getTitle())
                 .views(views)
+                .likes(ratingStats.getLikes())
+                .dislikes(ratingStats.getDislikes())
+                .rating(ratingStats.getRating())
                 .build();
     }
 
-    public static EventShortDto toEventShortDto(Event event, Long views, Long confirmedRequests) {
+    public static EventShortDto toEventShortDto(Event event, Long views, Long confirmedRequests,
+                                                RatingStatsDto ratingStats) {
         return EventShortDto.builder()
                 .id(event.getId())
                 .annotation(event.getAnnotation())
@@ -67,6 +73,9 @@ public class EventMapper {
                 .paid(event.getPaid())
                 .title(event.getTitle())
                 .views(views)
+                .likes(ratingStats.getLikes())
+                .dislikes(ratingStats.getDislikes())
+                .rating(ratingStats.getRating())
                 .build();
     }
 
