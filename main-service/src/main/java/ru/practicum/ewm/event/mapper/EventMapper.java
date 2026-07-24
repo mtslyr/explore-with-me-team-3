@@ -37,7 +37,7 @@ public class EventMapper {
     }
 
     public EventFullDto toEventFullDto(Event event, Long views, Long confirmedRequests,
-                                       RatingStatsDto ratingStats) {
+                                       RatingStatsDto ratingStats, Long commentCount) {
         return EventFullDto.builder()
                 .id(event.getId())
                 .annotation(event.getAnnotation())
@@ -58,11 +58,12 @@ public class EventMapper {
                 .likes(ratingStats.getLikes())
                 .dislikes(ratingStats.getDislikes())
                 .rating(ratingStats.getRating())
+                .commentCount(commentCount)
                 .build();
     }
 
     public static EventShortDto toEventShortDto(Event event, Long views, Long confirmedRequests,
-                                                RatingStatsDto ratingStats) {
+                                                RatingStatsDto ratingStats, Long commentCount) {
         return EventShortDto.builder()
                 .id(event.getId())
                 .annotation(event.getAnnotation())
@@ -76,6 +77,7 @@ public class EventMapper {
                 .likes(ratingStats.getLikes())
                 .dislikes(ratingStats.getDislikes())
                 .rating(ratingStats.getRating())
+                .commentCount(commentCount)
                 .build();
     }
 

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.category.exception.CategoryNotFoundException;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.common.util.EventUtil;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.exception.EventNotFoundException;
@@ -47,6 +48,7 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final CommentRepository commentRepository;
     private final EventUtil eventUtil;
     private final EventMapper mapper;
     private final RatingService ratingService;
@@ -68,7 +70,7 @@ public class EventServiceImpl implements EventService {
         Event event = mapper.toEvent(dto, category, user);
         event = eventRepository.save(event);
         log.debug("Event created: {} by user {}", event.getId(), userId);
-        return mapper.toEventFullDto(event, 0L, 0L, RatingStatsDto.EMPTY);
+        return mapper.toEventFullDto(event, 0L, 0L, RatingStatsDto.EMPTY, 0L);
     }
 
     @Override
@@ -79,11 +81,13 @@ public class EventServiceImpl implements EventService {
         PageRequest page = PageRequest.of(from / size, size);
         List<Event> events = eventRepository.findByInitiatorId(userId, page).getContent();
         Map<Long, RatingStatsDto> ratings = getRatings(events);
+        Map<Long, Long> commentCounts = getCommentCounts(events);
         return events.stream()
                 .map(e -> mapper.toEventShortDto(e,
                         eventUtil.getViews(e.getId()),
                         eventUtil.getConfirmedRequests(e.getId()),
-                        ratingFor(e.getId(), ratings)))
+                        ratingFor(e.getId(), ratings),
+                        countFor(e.getId(), commentCounts)))
                 .collect(Collectors.toList());
     }
 
@@ -96,7 +100,7 @@ public class EventServiceImpl implements EventService {
             throw new EventNotFoundException(eventId);
         }
         return mapper.toEventFullDto(event, eventUtil.getViews(eventId),
-                eventUtil.getConfirmedRequests(eventId), getRating(eventId));
+                eventUtil.getConfirmedRequests(eventId), getRating(eventId), getCommentCount(eventId));
     }
 
     @Override
@@ -144,7 +148,7 @@ public class EventServiceImpl implements EventService {
         event = eventRepository.save(event);
         log.debug("Event updated by user: {}", eventId);
         return mapper.toEventFullDto(event, eventUtil.getViews(eventId),
-                eventUtil.getConfirmedRequests(eventId), getRating(eventId));
+                eventUtil.getConfirmedRequests(eventId), getRating(eventId), getCommentCount(eventId));
     }
 
     @Override
@@ -168,9 +172,11 @@ public class EventServiceImpl implements EventService {
                 page
         ).getContent();
         Map<Long, RatingStatsDto> ratings = getRatings(events);
+        Map<Long, Long> commentCounts = getCommentCounts(events);
         return events.stream()
                 .map(e -> mapper.toEventFullDto(e, eventUtil.getViews(e.getId()),
-                        eventUtil.getConfirmedRequests(e.getId()), ratingFor(e.getId(), ratings)))
+                        eventUtil.getConfirmedRequests(e.getId()), ratingFor(e.getId(), ratings),
+                        countFor(e.getId(), commentCounts)))
                 .collect(Collectors.toList());
     }
 
@@ -221,7 +227,7 @@ public class EventServiceImpl implements EventService {
         event = eventRepository.save(event);
         log.debug("Event updated by admin: {}", eventId);
         return mapper.toEventFullDto(event, eventUtil.getViews(eventId),
-                eventUtil.getConfirmedRequests(eventId), getRating(eventId));
+                eventUtil.getConfirmedRequests(eventId), getRating(eventId), getCommentCount(eventId));
     }
 
     @Override
@@ -239,9 +245,11 @@ public class EventServiceImpl implements EventService {
             start = LocalDateTime.now();
         }
 
+        boolean commentsSort = "COMMENTS".equals(sort);
         boolean ratingSort = "RATING".equals(sort);
+        boolean noPaginationSort = commentsSort || ratingSort;
         List<Event> events;
-        if (ratingSort) {
+        if (noPaginationSort) {
             events = eventRepository.findAll(
                     EventSpecification.publishedEvents(text, categories, paid, start, end)
             );
@@ -252,8 +260,9 @@ public class EventServiceImpl implements EventService {
                     page
             ).getContent();
         }
-        Map<Long, RatingStatsDto> ratings = getRatings(events);
 
+        Map<Long, RatingStatsDto> ratings = getRatings(events);
+        Map<Long, Long> commentCounts = getCommentCounts(events);
         List<EventShortDto> result = new ArrayList<>();
         List<EventShortDto> subscribedEvents = new ArrayList<>();
         List<EventShortDto> otherEvents = new ArrayList<>();
@@ -265,7 +274,7 @@ public class EventServiceImpl implements EventService {
                 continue;
             }
             EventShortDto dto = mapper.toEventShortDto(e, eventUtil.getViews(e.getId()), confirmed,
-                    ratingFor(e.getId(), ratings));
+                    ratingFor(e.getId(), ratings), countFor(e.getId(), commentCounts));
             if (isUserSubscribed(userId, e.getInitiator().getId())) {
                 subscribedEvents.add(dto);
             } else {
@@ -273,20 +282,23 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        if ("VIEWS".equals(sort)) {
-            subscribedEvents.sort(Comparator.comparingLong(EventShortDto::getViews));
-            otherEvents.sort(Comparator.comparingLong(EventShortDto::getViews));
+        if (commentsSort) {
+            subscribedEvents.sort(Comparator.comparingLong(EventShortDto::getCommentCount).reversed());
+            otherEvents.sort(Comparator.comparingLong(EventShortDto::getCommentCount).reversed());
         } else if (ratingSort) {
             Comparator<EventShortDto> byRating =
                     Comparator.comparingLong(EventShortDto::getRating).reversed();
             subscribedEvents.sort(byRating);
             otherEvents.sort(byRating);
+        } else if ("VIEWS".equals(sort)) {
+            subscribedEvents.sort(Comparator.comparingLong(EventShortDto::getViews));
+            otherEvents.sort(Comparator.comparingLong(EventShortDto::getViews));
         }
 
         result.addAll(subscribedEvents);
         result.addAll(otherEvents);
 
-        if (ratingSort) {
+        if (noPaginationSort) {
             int startIndex = Math.min(from, result.size());
             int endIndex = Math.min(startIndex + size, result.size());
             return new ArrayList<>(result.subList(startIndex, endIndex));
@@ -308,7 +320,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new EventNotFoundException(id));
 
         return mapper.toEventFullDto(event, eventUtil.getViews(id),
-                eventUtil.getConfirmedRequests(id), getRating(id));
+                eventUtil.getConfirmedRequests(id), getRating(id), getCommentCount(id));
     }
 
     private Map<Long, RatingStatsDto> getRatings(Collection<Event> events) {
@@ -321,5 +333,27 @@ public class EventServiceImpl implements EventService {
 
     private RatingStatsDto ratingFor(Long eventId, Map<Long, RatingStatsDto> ratings) {
         return ratings.getOrDefault(eventId, RatingStatsDto.EMPTY);
+    }
+
+    private Map<Long, Long> getCommentCounts(Collection<Event> events) {
+        List<Long> ids = events.stream().map(Event::getId).toList();
+        if (ids.isEmpty()) return Collections.emptyMap();
+        return commentRepository.countByEventIdIn(ids).stream()
+                .collect(Collectors.toMap(
+                        view -> view.getEventId(),
+                        view -> view.getCnt()
+                ));
+    }
+
+    private Long getCommentCount(Long eventId) {
+        return countFor(eventId, commentRepository.countByEventIdIn(List.of(eventId)).stream()
+                .collect(Collectors.toMap(
+                        view -> view.getEventId(),
+                        view -> view.getCnt()
+                )));
+    }
+
+    private Long countFor(Long eventId, Map<Long, Long> commentCounts) {
+        return commentCounts.getOrDefault(eventId, 0L);
     }
 }

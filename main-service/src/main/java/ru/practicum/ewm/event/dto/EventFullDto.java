@@ -52,4 +52,6 @@ public class EventFullDto {
     private Long dislikes;
 
     private Long rating;
+
+    private Long commentCount;
 }

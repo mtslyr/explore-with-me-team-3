@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.common.exception.LocationNotFoundException;
 import ru.practicum.ewm.common.util.EventUtil;
 import ru.practicum.ewm.event.dto.EventShortDto;
@@ -22,8 +23,10 @@ import ru.practicum.ewm.locations.repository.LocationRepository;
 import ru.practicum.ewm.rating.dto.RatingStatsDto;
 import ru.practicum.ewm.rating.service.RatingService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -34,6 +37,7 @@ public class LocationServiceImpl implements LocationService {
 
     private final LocationRepository locationRepository;
     private final EventRepository eventRepository;
+    private final CommentRepository commentRepository;
     private final LocationMapper mapper;
     private final EventUtil eventUtil;
     private final RatingService ratingService;
@@ -103,6 +107,7 @@ public class LocationServiceImpl implements LocationService {
                 .findEventsWithinRadius(request.getLat(), request.getLon(), request.getRadius());
         Map<Long, RatingStatsDto> ratings = ratingService.getStats(
                 events.stream().map(Event::getId).toList());
+        Map<Long, Long> commentCounts = getCommentCounts(events);
 
         return events
                 .stream()
@@ -110,7 +115,18 @@ public class LocationServiceImpl implements LocationService {
                         event,
                         eventUtil.getViews(event.getId()),
                         eventUtil.getConfirmedRequests(event.getId()),
-                        ratings.getOrDefault(event.getId(), RatingStatsDto.EMPTY)))
+                        ratings.getOrDefault(event.getId(), RatingStatsDto.EMPTY),
+                        commentCounts.getOrDefault(event.getId(), 0L)))
                 .toList();
+    }
+
+    private Map<Long, Long> getCommentCounts(List<Event> events) {
+        List<Long> ids = events.stream().map(Event::getId).toList();
+        if (ids.isEmpty()) return Collections.emptyMap();
+        return commentRepository.countByEventIdIn(ids).stream()
+                .collect(Collectors.toMap(
+                        view -> view.getEventId(),
+                        view -> view.getCnt()
+                ));
     }
 }
