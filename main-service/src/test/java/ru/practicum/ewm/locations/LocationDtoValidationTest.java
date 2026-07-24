@@ -35,8 +35,8 @@ class LocationDtoValidationTest {
     void create_shouldFailWithoutEventId() throws Exception {
         NewLocationDto dto = NewLocationDto.builder()
                 .name("Test")
-                .lat(55.55f)
-                .lon(33.33f)
+                .lat(55.75f)
+                .lon(37.61f)
                 .build();
 
         mockMvc.perform(post("/admin/locations")
@@ -50,7 +50,7 @@ class LocationDtoValidationTest {
         NewLocationDto dto = NewLocationDto.builder()
                 .eventId(1L)
                 .name("Test")
-                .lon(33.33f)
+                .lon(37.61f)
                 .build();
 
         mockMvc.perform(post("/admin/locations")
@@ -64,7 +64,7 @@ class LocationDtoValidationTest {
         NewLocationDto dto = NewLocationDto.builder()
                 .eventId(1L)
                 .name("Test")
-                .lat(55.55f)
+                .lat(55.75f)
                 .build();
 
         mockMvc.perform(post("/admin/locations")
@@ -80,7 +80,7 @@ class LocationDtoValidationTest {
                 .eventId(1L)
                 .name("Test")
                 .lat(invalidLat)
-                .lon(33.33f)
+                .lon(37.61f)
                 .build();
 
         mockMvc.perform(post("/admin/locations")
@@ -95,7 +95,7 @@ class LocationDtoValidationTest {
         NewLocationDto dto = NewLocationDto.builder()
                 .eventId(1L)
                 .name("Test")
-                .lat(55.55f)
+                .lat(55.75f)
                 .lon(invalidLon)
                 .build();
 
@@ -111,8 +111,8 @@ class LocationDtoValidationTest {
         NewLocationDto dto = NewLocationDto.builder()
                 .eventId(1L)
                 .name(longName)
-                .lat(55.55f)
-                .lon(33.33f)
+                .lat(55.75f)
+                .lon(37.61f)
                 .build();
 
         mockMvc.perform(post("/admin/locations")
@@ -124,7 +124,7 @@ class LocationDtoValidationTest {
     @Test
     void search_shouldFailWithoutLat() throws Exception {
         mockMvc.perform(get("/locations")
-                        .param("lon", "33.33")
+                        .param("lon", "37.61")
                         .param("radius", "10"))
                 .andExpect(status().isBadRequest());
     }
@@ -132,7 +132,7 @@ class LocationDtoValidationTest {
     @Test
     void search_shouldFailWithoutLon() throws Exception {
         mockMvc.perform(get("/locations")
-                        .param("lat", "55.55")
+                        .param("lat", "55.75")
                         .param("radius", "10"))
                 .andExpect(status().isBadRequest());
     }
@@ -140,16 +140,16 @@ class LocationDtoValidationTest {
     @Test
     void search_shouldFailWithoutRadius() throws Exception {
         mockMvc.perform(get("/locations")
-                        .param("lat", "55.55")
-                        .param("lon", "33.33"))
+                        .param("lat", "55.75")
+                        .param("lon", "37.61"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void search_shouldFailWithZeroRadius() throws Exception {
         mockMvc.perform(get("/locations")
-                        .param("lat", "55.55")
-                        .param("lon", "33.33")
+                        .param("lat", "55.75")
+                        .param("lon", "37.61")
                         .param("radius", "0"))
                 .andExpect(status().isBadRequest());
     }
@@ -159,7 +159,7 @@ class LocationDtoValidationTest {
     void search_shouldFailWithInvalidLat(String invalidLat) throws Exception {
         mockMvc.perform(get("/locations")
                         .param("lat", invalidLat)
-                        .param("lon", "33.33")
+                        .param("lon", "37.61")
                         .param("radius", "10"))
                 .andExpect(status().isBadRequest());
     }
@@ -168,7 +168,7 @@ class LocationDtoValidationTest {
     @ValueSource(strings = {"-181", "181", "-200", "200"})
     void search_shouldFailWithInvalidLon(String invalidLon) throws Exception {
         mockMvc.perform(get("/locations")
-                        .param("lat", "55.55")
+                        .param("lat", "55.75")
                         .param("lon", invalidLon)
                         .param("radius", "10"))
                 .andExpect(status().isBadRequest());

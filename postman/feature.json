@@ -911,7 +911,857 @@
     },
     {
       "name": "Локации",
-      "item": []
+      "item": [
+        {
+          "name": "Location create 200",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "    try {",
+                  "        const user = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set('locUserId', user.id);",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set('locCatId', category.id);",
+                  "        const event = await api.addEvent(user.id, rnd.getEvent(category.id));",
+                  "        pm.collectionVariables.set('locEventId', event.id);",
+                  "        await api.publishEvent(event.id);",
+                  "    } catch(err) {",
+                  "        console.error('Ошибка при подготовке тестовых данных.', err);",
+                  "    }",
+                  "};",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "setTimeout(async () => {",
+                  "    try { await main(); } catch (e) { console.error(e); } finally { clearInterval(interval); }",
+                  "}, 100);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "const response = pm.response.json();",
+                  "pm.test('Проверка данных локации', function () {",
+                  "    pm.expect(response.id).to.exist;",
+                  "    pm.expect(response.eventId).to.eql(Number(pm.collectionVariables.get('locEventId')));",
+                  "    pm.expect(response.name).to.eql('Test Location');",
+                  "    pm.expect(response.lat).to.eql(55.75);",
+                  "    pm.expect(response.lon).to.eql(37.61);",
+                  "    pm.collectionVariables.set('locId', response.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": {{locEventId}},\n  \"name\": \"Test Location\",\n  \"lat\": 55.75,\n  \"lon\": 37.61\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Location get 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "pm.test('Проверка ID локации', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('locId')));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations/{{locId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations", "{{locId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Location patch 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "const res = pm.response.json();",
+                  "pm.test('Проверка обновленных данных', function () {",
+                  "    pm.expect(res.name).to.eql('Updated Location');",
+                  "    pm.expect(res.lat).to.eql(56.0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Location\",\n  \"lat\": 56.0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations/{{locId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations", "{{locId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Location get array 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "pm.test('Ответ является массивом', function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "    pm.expect(pm.response.json().length).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations?from=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"],
+              "query": [
+                { "key": "from", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Location delete 204",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 204', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations/{{locId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations", "{{locId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Location get locid 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations", "999999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Location delete locid 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations", "999999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Location patch locid 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations", "999999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Location create eventId 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 404 (EventNotFoundException)', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": 999999,\n  \"name\": \"Bad Location\",\n  \"lat\": 55.75,\n  \"lon\": 37.61\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getEventsInLocation: Расстояние < радиуса",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "    try {",
+                  "        const user = await api.addUser(rnd.getUser());",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        const eventDto = rnd.getEvent(category.id);",
+                  "        eventDto.location = { lat: 55.794, lon: 37.61 };",
+                  "        const event = await api.addEvent(user.id, eventDto);",
+                  "        pm.collectionVariables.set('distLessEventId', event.id);",
+                  "        await api.publishEvent(event.id);",
+                  "        await api.post('/admin/locations', {",
+                  "            eventId: event.id,",
+                  "            name: 'Near Location',",
+                  "            lat: 55.794,",
+                  "            lon: 37.61",
+                  "        });",
+                  "    } catch(err) {",
+                  "        console.error('Ошибка при подготовке тестовых данных.', err);",
+                  "    }",
+                  "};",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "setTimeout(async () => {",
+                  "    try { await main(); } catch (e) { console.error(e); } finally { clearInterval(interval); }",
+                  "}, 100);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "pm.test('Событие найдено (distance < radius)', function () {",
+                  "    const events = pm.response.json();",
+                  "    const found = events.find(e => e.id === Number(pm.collectionVariables.get('distLessEventId')));",
+                  "    pm.expect(found).to.not.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations?lat=55.75&lon=37.61&radius=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations"],
+              "query": [
+                { "key": "lat", "value": "55.75" },
+                { "key": "lon", "value": "37.61" },
+                { "key": "radius", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getEventsInLocation: Расстояние > радиуса",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "    try {",
+                  "        const user = await api.addUser(rnd.getUser());",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        const eventDto = rnd.getEvent(category.id);",
+                  "        eventDto.location = { lat: 56.65, lon: 37.61 };",
+                  "        const event = await api.addEvent(user.id, eventDto);",
+                  "        pm.collectionVariables.set('distMoreEventId', event.id);",
+                  "        await api.publishEvent(event.id);",
+                  "        await api.post('/admin/locations', {",
+                  "            eventId: event.id,",
+                  "            name: 'Far Location',",
+                  "            lat: 56.65,",
+                  "            lon: 37.61",
+                  "        });",
+                  "    } catch(err) {",
+                  "        console.error('Ошибка при подготовке тестовых данных.', err);",
+                  "    }",
+                  "};",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "setTimeout(async () => {",
+                  "    try { await main(); } catch (e) { console.error(e); } finally { clearInterval(interval); }",
+                  "}, 100);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "pm.test('Событие НЕ найдено (distance > radius)', function () {",
+                  "    const events = pm.response.json();",
+                  "    const found = events.find(e => e.id === Number(pm.collectionVariables.get('distMoreEventId')));",
+                  "    pm.expect(found).to.be.undefined;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations?lat=55.75&lon=37.61&radius=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations"],
+              "query": [
+                { "key": "lat", "value": "55.75" },
+                { "key": "lon", "value": "37.61" },
+                { "key": "radius", "value": "1" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST без eventId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test\",\n  \"lat\": 55.75,\n  \"lon\": 37.61\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST без lat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": 1,\n  \"name\": \"Test\",\n  \"lon\": 37.61\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST без lon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": 1,\n  \"name\": \"Test\",\n  \"lat\": 55.75\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST lat > 90",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": 1,\n  \"name\": \"Test\",\n  \"lat\": 91.0,\n  \"lon\": 37.61\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST lat < -90",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": 1,\n  \"name\": \"Test\",\n  \"lat\": -91.0,\n  \"lon\": 37.61\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST lon > 180",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": 1,\n  \"name\": \"Test\",\n  \"lat\": 55.75,\n  \"lon\": 181.0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST lon < -180",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": 1,\n  \"name\": \"Test\",\n  \"lat\": 55.75,\n  \"lon\": -181.0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST name > 100 символов",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "    try {",
+                  "        const user = await api.addUser(rnd.getUser());",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        const event = await api.addEvent(user.id, rnd.getEvent(category.id));",
+                  "        pm.collectionVariables.set('valEventId', event.id);",
+                  "        const longName = rnd.getWord(101);",
+                  "        pm.request.body.update({",
+                  "            mode: 'raw',",
+                  "            raw: JSON.stringify({eventId: event.id, name: longName, lat: 55.75, lon: 37.61}),",
+                  "            options: { raw: { language: 'json' } }",
+                  "        });",
+                  "    } catch(err) {",
+                  "        console.error('Ошибка при подготовке тестовых данных.', err);",
+                  "    }",
+                  "};",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "setTimeout(async () => {",
+                  "    try { await main(); } catch (e) { console.error(e); } finally { clearInterval(interval); }",
+                  "}, 100);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": 1,\n  \"name\": \"test\",\n  \"lat\": 55.75,\n  \"lon\": 37.61\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "locations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET без lat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations?lon=37.61&radius=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations"],
+              "query": [
+                { "key": "lon", "value": "37.61" },
+                { "key": "radius", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET без lon",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations?lat=55.75&radius=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations"],
+              "query": [
+                { "key": "lat", "value": "55.75" },
+                { "key": "radius", "value": "10" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET без radius",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations?lat=55.75&lon=37.61",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations"],
+              "query": [
+                { "key": "lat", "value": "55.75" },
+                { "key": "lon", "value": "37.61" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET radius <= 0",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Статус код 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations?lat=55.75&lon=37.61&radius=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations"],
+              "query": [
+                { "key": "lat", "value": "55.75" },
+                { "key": "lon", "value": "37.61" },
+                { "key": "radius", "value": "0" }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     },
     {
       "name": "Комментарии",

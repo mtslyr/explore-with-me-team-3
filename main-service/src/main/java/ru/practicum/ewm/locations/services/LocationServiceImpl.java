@@ -103,14 +103,19 @@ public class LocationServiceImpl implements LocationService {
         log.debug("LocationService->getEventsInLocation: lat={}, lon={}, radius={}",
                 request.getLat(), request.getLon(), request.getRadius());
 
-        List<Event> events = locationRepository
-                .findEventsWithinRadius(request.getLat(), request.getLon(), request.getRadius());
-        Map<Long, RatingStatsDto> ratings = ratingService.getStats(
-                events.stream().map(Event::getId).toList());
-        Map<Long, Long> commentCounts = getCommentCounts(events);
+        List<Long> eventIds = locationRepository.findEventIdsWithinRadius(
+                request.getLat(), request.getLon(), request.getRadius());
 
-        return events
-                .stream()
+        if (eventIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Event> events = eventRepository.findAllById(eventIds);
+
+        Map<Long, RatingStatsDto> ratings = ratingService.getStats(eventIds);
+        Map<Long, Long> commentCounts = getCommentCounts(eventIds);
+
+        return events.stream()
                 .map(event -> EventMapper.toEventShortDto(
                         event,
                         eventUtil.getViews(event.getId()),
@@ -120,10 +125,9 @@ public class LocationServiceImpl implements LocationService {
                 .toList();
     }
 
-    private Map<Long, Long> getCommentCounts(List<Event> events) {
-        List<Long> ids = events.stream().map(Event::getId).toList();
-        if (ids.isEmpty()) return Collections.emptyMap();
-        return commentRepository.countByEventIdIn(ids).stream()
+    private Map<Long, Long> getCommentCounts(List<Long> events) {
+        if (events.isEmpty()) return Collections.emptyMap();
+        return commentRepository.countByEventIdIn(events).stream()
                 .collect(Collectors.toMap(
                         view -> view.getEventId(),
                         view -> view.getCnt()

@@ -44,16 +44,16 @@ public class AdminLocationControllerTest {
         NewLocationDto dto = NewLocationDto.builder()
                 .eventId(1L)
                 .name("TL")
-                .lat(55.55f)
-                .lon(33.33f)
+                .lat(55.75f)
+                .lon(37.61f)
                 .build();
 
         LocationDtoResponse response = LocationDtoResponse.builder()
                 .id(1L)
                 .eventId(1L)
                 .name("TL")
-                .lat(55.55f)
-                .lon(33.33f)
+                .lat(55.75f)
+                .lon(37.61f)
                 .build();
 
         when(locationService.create(any(NewLocationDto.class))).thenReturn(response);
@@ -65,8 +65,8 @@ public class AdminLocationControllerTest {
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.eventId").value(1L))
                 .andExpect(jsonPath("$.name").value("TL"))
-                .andExpect(jsonPath("$.lat").value(55.55))
-                .andExpect(jsonPath("$.lon").value(33.33));
+                .andExpect(jsonPath("$.lat").value(55.75))
+                .andExpect(jsonPath("$.lon").value(37.61));
     }
 
     @Test
@@ -74,8 +74,8 @@ public class AdminLocationControllerTest {
         NewLocationDto dto = NewLocationDto.builder()
                 .eventId(999L)
                 .name("Test")
-                .lat(55.55f)
-                .lon(33.33f)
+                .lat(55.75f)
+                .lon(37.61f)
                 .build();
 
         when(locationService.create(any(NewLocationDto.class)))
@@ -99,7 +99,7 @@ public class AdminLocationControllerTest {
                 .eventId(1L)
                 .name("Updated Name")
                 .lat(56.0f)
-                .lon(33.33f)
+                .lon(37.61f)
                 .build();
 
         when(locationService.patch(eq(1L), any(UpdateLocationRequest.class))).thenReturn(response);
@@ -164,7 +164,7 @@ public class AdminLocationControllerTest {
     @Test
     public void getAll_shouldReturnLocationsList() throws Exception {
         LocationDtoResponse loc1 = LocationDtoResponse.builder()
-                .id(1L).eventId(1L).name("Loc1").lat(55.55f).lon(33.33f).build();
+                .id(1L).eventId(1L).name("Loc1").lat(55.75f).lon(37.61f).build();
         LocationDtoResponse loc2 = LocationDtoResponse.builder()
                 .id(2L).eventId(2L).name("Loc2").lat(56.0f).lon(38.0f).build();
 
@@ -182,7 +182,7 @@ public class AdminLocationControllerTest {
     @Test
     public void getById_shouldReturnLocation() throws Exception {
         LocationDtoResponse response = LocationDtoResponse.builder()
-                .id(1L).eventId(1L).name("Test").lat(55.55f).lon(33.33f).build();
+                .id(1L).eventId(1L).name("Test").lat(55.75f).lon(37.61f).build();
 
         when(locationService.getById(1L)).thenReturn(response);
 

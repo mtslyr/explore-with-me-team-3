@@ -42,8 +42,8 @@ class PublicLocationControllerTest {
                 .thenReturn(List.of(event));
 
         mockMvc.perform(get(BASE_URL)
-                        .param("lat", "55.55")
-                        .param("lon", "33.33")
+                        .param("lat", "55.75")
+                        .param("lon", "37.61")
                         .param("radius", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -64,8 +64,8 @@ class PublicLocationControllerTest {
                 .thenReturn(List.of(eventOnBorder));
 
         mockMvc.perform(get(BASE_URL)
-                        .param("lat", "55.55")
-                        .param("lon", "33.33")
+                        .param("lat", "55.75")
+                        .param("lon", "37.61")
                         .param("radius", "5.0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -78,8 +78,8 @@ class PublicLocationControllerTest {
                 .thenReturn(List.of());
 
         mockMvc.perform(get(BASE_URL)
-                        .param("lat", "55.55")
-                        .param("lon", "33.33")
+                        .param("lat", "55.75")
+                        .param("lon", "37.61")
                         .param("radius", "1.0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
@@ -98,8 +98,8 @@ class PublicLocationControllerTest {
                 .thenReturn(List.of(eventInside));
 
         mockMvc.perform(get(BASE_URL)
-                        .param("lat", "55.55")
-                        .param("lon", "33.33")
+                        .param("lat", "55.75")
+                        .param("lon", "37.61")
                         .param("radius", "50.0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
