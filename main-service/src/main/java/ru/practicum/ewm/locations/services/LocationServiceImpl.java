@@ -19,8 +19,11 @@ import ru.practicum.ewm.locations.dto.UpdateLocationRequest;
 import ru.practicum.ewm.locations.mappers.LocationMapper;
 import ru.practicum.ewm.locations.models.Location;
 import ru.practicum.ewm.locations.repository.LocationRepository;
+import ru.practicum.ewm.rating.dto.RatingStatsDto;
+import ru.practicum.ewm.rating.service.RatingService;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Slf4j
@@ -33,6 +36,7 @@ public class LocationServiceImpl implements LocationService {
     private final EventRepository eventRepository;
     private final LocationMapper mapper;
     private final EventUtil eventUtil;
+    private final RatingService ratingService;
 
     @Override
     @Transactional
@@ -95,13 +99,18 @@ public class LocationServiceImpl implements LocationService {
         log.debug("LocationService->getEventsInLocation: lat={}, lon={}, radius={}",
                 request.getLat(), request.getLon(), request.getRadius());
 
-        return locationRepository
-                .findEventsWithinRadius(request.getLat(), request.getLon(), request.getRadius())
+        List<Event> events = locationRepository
+                .findEventsWithinRadius(request.getLat(), request.getLon(), request.getRadius());
+        Map<Long, RatingStatsDto> ratings = ratingService.getStats(
+                events.stream().map(Event::getId).toList());
+
+        return events
                 .stream()
                 .map(event -> EventMapper.toEventShortDto(
                         event,
                         eventUtil.getViews(event.getId()),
-                        eventUtil.getConfirmedRequests(event.getId())))
+                        eventUtil.getConfirmedRequests(event.getId()),
+                        ratings.getOrDefault(event.getId(), RatingStatsDto.EMPTY)))
                 .toList();
     }
 }
