@@ -910,491 +910,6 @@
       ]
     },
     {
-      "name": "Рейтинг",
-      "item": [
-        {
-          "name": "01. Create event initiator",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Initiator created', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('initiatorId', pm.response.json().id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\":\"Rating initiator\",\"email\":\"initiator-{{runId}}@example.com\"}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/admin/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "admin",
-                "users"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "02. Create rating user",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Rating user created', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('raterId', pm.response.json().id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\":\"Rating user\",\"email\":\"rater-{{runId}}@example.com\"}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/admin/users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "admin",
-                "users"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "03. Create category",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Category created', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('categoryId', pm.response.json().id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"name\":\"Rating {{runId}}\"}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/admin/categories",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "admin",
-                "categories"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "04. Create event",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Event created', () => pm.response.to.have.status(201));",
-                  "pm.collectionVariables.set('eventId', pm.response.json().id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"annotation\":\"An event used to verify event ratings\",\"category\":{{categoryId}},\"description\":\"A sufficiently long description for the event rating feature test\",\"eventDate\":\"{{eventDate}}\",\"location\":{\"lat\":41.311081,\"lon\":69.240562},\"paid\":false,\"participantLimit\":0,\"requestModeration\":false,\"title\":\"Rating feature event\"}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/users/{{initiatorId}}/events",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "{{initiatorId}}",
-                "events"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "05. Publish event",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Event published', () => pm.response.to.have.status(200));",
-                  "pm.test('Initial rating is zero', () => {",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body.likes).to.eql(0);",
-                  "    pm.expect(body.dislikes).to.eql(0);",
-                  "    pm.expect(body.rating).to.eql(0);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"stateAction\":\"PUBLISH_EVENT\"}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/admin/events/{{eventId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "admin",
-                "events",
-                "{{eventId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "06. Like event",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Like accepted', () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/{{raterId}}/events/{{eventId}}/like",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "{{raterId}}",
-                "events",
-                "{{eventId}}",
-                "like"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "07. Get liked event",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Liked event has positive rating', () => {",
-                  "    pm.response.to.have.status(200);",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body.likes).to.eql(1);",
-                  "    pm.expect(body.dislikes).to.eql(0);",
-                  "    pm.expect(body.rating).to.eql(1);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/events/{{eventId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events",
-                "{{eventId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "08. Replace like with dislike",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Dislike accepted', () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/{{raterId}}/events/{{eventId}}/dislike",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "{{raterId}}",
-                "events",
-                "{{eventId}}",
-                "dislike"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "09. Get disliked event",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Like was replaced, not duplicated', () => {",
-                  "    pm.response.to.have.status(200);",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body.likes).to.eql(0);",
-                  "    pm.expect(body.dislikes).to.eql(1);",
-                  "    pm.expect(body.rating).to.eql(-1);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/events/{{eventId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events",
-                "{{eventId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "10. Delete rating",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Rating deleted', () => pm.response.to.have.status(204));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/{{raterId}}/events/{{eventId}}/rating",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "{{raterId}}",
-                "events",
-                "{{eventId}}",
-                "rating"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "11. Get event after rating deletion",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Rating counters returned to zero', () => {",
-                  "    pm.response.to.have.status(200);",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body.likes).to.eql(0);",
-                  "    pm.expect(body.dislikes).to.eql(0);",
-                  "    pm.expect(body.rating).to.eql(0);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/events/{{eventId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events",
-                "{{eventId}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "12. Initiator cannot rate own event",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Own event rating is rejected', () => pm.response.to.have.status(409));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/users/{{initiatorId}}/events/{{eventId}}/like",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "{{initiatorId}}",
-                "events",
-                "{{eventId}}",
-                "like"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "13. Public list supports rating sort",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Rating sort returns event rating fields', () => {",
-                  "    pm.response.to.have.status(200);",
-                  "    const event = pm.response.json().find(item => item.id === Number(pm.collectionVariables.get('eventId')));",
-                  "    pm.expect(event).to.exist;",
-                  "    pm.expect(event).to.have.property('likes');",
-                  "    pm.expect(event).to.have.property('dislikes');",
-                  "    pm.expect(event).to.have.property('rating');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/events?categories={{categoryId}}&sort=RATING",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "events"
-              ],
-              "query": [
-                {
-                  "key": "categories",
-                  "value": "{{categoryId}}"
-                },
-                {
-                  "key": "sort",
-                  "value": "RATING"
-                }
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
       "name": "Локации",
       "item": []
     },
@@ -2530,6 +2045,774 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Рейтинг",
+      "item": [
+        {
+          "name": "Поставить лайк",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        const userA = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userId\", userA.id)",
+                  "",
+                  "        const userB = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userBId\", userB.id);",
+                  "",
+                  "        // публикуем событие пользователя Б",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set(\"catId\", category.id);",
+                  "        const eventB = await api.addEvent(userB.id, rnd.getEvent(category.id));",
+                  "        await api.publishEvent(eventB.id);",
+                  "",
+                  "        pm.collectionVariables.set(\"eventId\", eventB.id);",
+                  "    } catch(err) {",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+                  "    }",
+                  "",
+                  "    pm.request.body.update({",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify(event),",
+                  "        options: { raw: { language: 'json' } }",
+                  "    });",
+                  "};",
+                  "",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "",
+                  "setTimeout(async () => ",
+                  "    {",
+                  "        try {",
+                  "            await main();",
+                  "        } catch (e) {",
+                  "            console.error(e);",
+                  "        } finally {",
+                  "            clearInterval(interval);",
+                  "        }",
+                  "    },  ",
+                  "    100 ",
+                  ");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/events/{{eventId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "events",
+                "{{eventId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Поставить лайк собственному событию",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        const user = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userId\", user.id);",
+                  "",
+                  "        // публикуем событие пользователя Б",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set(\"catId\", category.id);",
+                  "        const event = await api.addEvent(user.id, rnd.getEvent(category.id));",
+                  "        await api.publishEvent(event.id);",
+                  "",
+                  "        pm.collectionVariables.set(\"eventId\", event.id);",
+                  "    } catch(err) {",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+                  "    }",
+                  "",
+                  "    pm.request.body.update({",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify(event),",
+                  "        options: { raw: { language: 'json' } }",
+                  "    });",
+                  "};",
+                  "",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "",
+                  "setTimeout(async () => ",
+                  "    {",
+                  "        try {",
+                  "            await main();",
+                  "        } catch (e) {",
+                  "            console.error(e);",
+                  "        } finally {",
+                  "            clearInterval(interval);",
+                  "        }",
+                  "    },  ",
+                  "    100 ",
+                  ");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 409\", function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Проверка текста ошибки\", function () {",
+                  "    pm.expect(response.message).to.be.eql(\"An initiator cannot rate their own event\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/events/{{eventId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "events",
+                "{{eventId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Поставить дизлайк",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        const userA = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userId\", userA.id)",
+                  "",
+                  "        const userB = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userBId\", userB.id);",
+                  "",
+                  "        // публикуем событие пользователя Б",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set(\"catId\", category.id);",
+                  "        const eventB = await api.addEvent(userB.id, rnd.getEvent(category.id));",
+                  "        await api.publishEvent(eventB.id);",
+                  "",
+                  "        pm.collectionVariables.set(\"eventId\", eventB.id);",
+                  "    } catch (err) {",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+                  "    }",
+                  "",
+                  "    pm.request.body.update({",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify(event),",
+                  "        options: { raw: { language: 'json' } }",
+                  "    });",
+                  "};",
+                  "",
+                  "const interval = setInterval(() => { }, 1000);",
+                  "",
+                  "setTimeout(async () => {",
+                  "    try {",
+                  "        await main();",
+                  "    } catch (e) {",
+                  "        console.error(e);",
+                  "    } finally {",
+                  "        clearInterval(interval);",
+                  "    }",
+                  "},",
+                  "    100",
+                  ");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/events/{{eventId}}/like",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "events",
+                "{{eventId}}",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить понравившееся событие",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        const userA = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userId\", userA.id)",
+                  "",
+                  "        const userB = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userBId\", userB.id);",
+                  "",
+                  "        // публикуем событие пользователя Б",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set(\"catId\", category.id);",
+                  "        const eventB = await api.addEvent(userB.id, rnd.getEvent(category.id));",
+                  "        await api.publishEvent(eventB.id);",
+                  "",
+                  "        pm.collectionVariables.set(\"eventId\", eventB.id);",
+                  "",
+                  "        await api.likeEvent(userA.id, eventB.id);",
+                  "    } catch(err) {",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+                  "    }",
+                  "",
+                  "    pm.request.body.update({",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify(event),",
+                  "        options: { raw: { language: 'json' } }",
+                  "    });",
+                  "};",
+                  "",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "",
+                  "setTimeout(async () => ",
+                  "    {",
+                  "        try {",
+                  "            await main();",
+                  "        } catch (e) {",
+                  "            console.error(e);",
+                  "        } finally {",
+                  "            clearInterval(interval);",
+                  "        }",
+                  "    },  ",
+                  "    100 ",
+                  ");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.have.body;",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Проверка наличия лайка\", function () {",
+                  "    pm.expect(response.likes).to.be.eql(1);",
+                  "    pm.expect(response.dislikes).to.be.eql(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Проверка наличия рейтинга\", function () {",
+                  "    pm.expect(response.rating).to.be.eql(1);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить непонравившееся событие",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        const userA = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userId\", userA.id)",
+                  "",
+                  "        const userB = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userBId\", userB.id);",
+                  "",
+                  "        // публикуем событие пользователя Б",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set(\"catId\", category.id);",
+                  "        const eventB = await api.addEvent(userB.id, rnd.getEvent(category.id));",
+                  "        await api.publishEvent(eventB.id);",
+                  "",
+                  "        pm.collectionVariables.set(\"eventId\", eventB.id);",
+                  "",
+                  "        await api.dislikeEvent(userA.id, eventB.id);",
+                  "    } catch(err) {",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+                  "    }",
+                  "",
+                  "    pm.request.body.update({",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify(event),",
+                  "        options: { raw: { language: 'json' } }",
+                  "    });",
+                  "};",
+                  "",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "",
+                  "setTimeout(async () => ",
+                  "    {",
+                  "        try {",
+                  "            await main();",
+                  "        } catch (e) {",
+                  "            console.error(e);",
+                  "        } finally {",
+                  "            clearInterval(interval);",
+                  "        }",
+                  "    },  ",
+                  "    100 ",
+                  ");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.have.body;",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Проверка наличия лайка\", function () {",
+                  "    pm.expect(response.likes).to.be.eql(0);",
+                  "    pm.expect(response.dislikes).to.be.eql(1);",
+                  "});",
+                  "",
+                  "pm.test(\"Проверка наличия рейтинга\", function () {",
+                  "    pm.expect(response.rating).to.be.eql(-1);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Заменить лайк на дизлайк",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        const userA = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userId\", userA.id)",
+                  "",
+                  "        const userB = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userBId\", userB.id);",
+                  "",
+                  "        // публикуем событие пользователя Б",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set(\"catId\", category.id);",
+                  "        const eventB = await api.addEvent(userB.id, rnd.getEvent(category.id));",
+                  "        await api.publishEvent(eventB.id);",
+                  "",
+                  "        pm.collectionVariables.set(\"eventId\", eventB.id);",
+                  "",
+                  "        await api.likeEvent(userA.id, eventB.id);",
+                  "        await api.dislikeEvent(userA.id, eventB.id);",
+                  "    } catch(err) {",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+                  "    }",
+                  "",
+                  "    pm.request.body.update({",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify(event),",
+                  "        options: { raw: { language: 'json' } }",
+                  "    });",
+                  "};",
+                  "",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "",
+                  "setTimeout(async () => ",
+                  "    {",
+                  "        try {",
+                  "            await main();",
+                  "        } catch (e) {",
+                  "            console.error(e);",
+                  "        } finally {",
+                  "            clearInterval(interval);",
+                  "        }",
+                  "    },  ",
+                  "    100 ",
+                  ");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.have.body;",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Проверка наличия лайка\", function () {",
+                  "    pm.expect(response.likes).to.be.eql(0);",
+                  "    pm.expect(response.dislikes).to.be.eql(1);",
+                  "});",
+                  "",
+                  "pm.test(\"Проверка наличия рейтинга\", function () {",
+                  "    pm.expect(response.rating).to.be.eql(-1);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Удалить рейтинг",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        const userA = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userId\", userA.id)",
+                  "",
+                  "        const userB = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userBId\", userB.id);",
+                  "",
+                  "        // публикуем событие пользователя Б",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set(\"catId\", category.id);",
+                  "        const eventB = await api.addEvent(userB.id, rnd.getEvent(category.id));",
+                  "        await api.publishEvent(eventB.id);",
+                  "",
+                  "        pm.collectionVariables.set(\"eventId\", eventB.id);",
+                  "",
+                  "        await api.likeEvent(userA.id, eventB.id);",
+                  "    } catch(err) {",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+                  "    }",
+                  "",
+                  "    pm.request.body.update({",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify(event),",
+                  "        options: { raw: { language: 'json' } }",
+                  "    });",
+                  "};",
+                  "",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "",
+                  "setTimeout(async () => ",
+                  "    {",
+                  "        try {",
+                  "            await main();",
+                  "        } catch (e) {",
+                  "            console.error(e);",
+                  "        } finally {",
+                  "            clearInterval(interval);",
+                  "        }",
+                  "    },  ",
+                  "    100 ",
+                  ");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/events/{{eventId}}/rating",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "events",
+                "{{eventId}}",
+                "rating"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Получить событие после удаления рейтинга",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        const userA = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userId\", userA.id)",
+                  "",
+                  "        const userB = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set(\"userBId\", userB.id);",
+                  "",
+                  "        // публикуем событие пользователя Б",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        pm.collectionVariables.set(\"catId\", category.id);",
+                  "        const eventB = await api.addEvent(userB.id, rnd.getEvent(category.id));",
+                  "        await api.publishEvent(eventB.id);",
+                  "",
+                  "        pm.collectionVariables.set(\"eventId\", eventB.id);",
+                  "",
+                  "        await api.likeEvent(userA.id, eventB.id);",
+                  "        await api.deleteRating(userA.id, eventB.id);",
+                  "    } catch(err) {",
+                  "        console.error(\"Ошибка при подготовке тестовых данных.\", err);",
+                  "    }",
+                  "",
+                  "    pm.request.body.update({",
+                  "        mode: 'raw',",
+                  "        raw: JSON.stringify(event),",
+                  "        options: { raw: { language: 'json' } }",
+                  "    });",
+                  "};",
+                  "",
+                  "const interval = setInterval(() => {}, 1000);",
+                  "",
+                  "setTimeout(async () => ",
+                  "    {",
+                  "        try {",
+                  "            await main();",
+                  "        } catch (e) {",
+                  "            console.error(e);",
+                  "        } finally {",
+                  "            clearInterval(interval);",
+                  "        }",
+                  "    },  ",
+                  "    100 ",
+                  ");"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Статус код 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.response.to.have.body;",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Рейтинг события не поменялся\", function () {",
+                  "    pm.expect(response.likes).to.be.eql(0);",
+                  "    pm.expect(response.dislikes).to.be.eql(0);",
+                  "    pm.expect(response.rating).to.be.eql(0);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events",
+                "{{eventId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "event": [
@@ -2545,6 +2828,36 @@
           "        this.baseUrl = baseUrl;",
           "        this.pm = postman;",
           "        this._verbose = verbose;",
+          "    }",
+          "",
+          "    async deleteRating(userId, eventId, verbose = null) {",
+          "        return this.delete(\"/users/\" + userId + \"/events/\" + eventId + \"/rating\", null, \"Ошибка при дизлайке события\", verbose)",
+          "            .catch(err => {",
+          "                if (err.message && err.message.includes(\"Отправлено пустое тело ответа\")) {",
+          "                    return null;",
+          "                }",
+          "                throw err;",
+          "            });",
+          "    }",
+          "",
+          "    async dislikeEvent(userId, eventId, verbose = null) {",
+          "        return this.put(\"/users/\" + userId + \"/events/\" + eventId + \"/dislike\", null, \"Ошибка при дизлайке события\", verbose)",
+          "            .catch(err => {",
+          "                if (err.message && err.message.includes(\"Отправлено пустое тело ответа\")) {",
+          "                    return null;",
+          "                }",
+          "                throw err;",
+          "            });",
+          "    }",
+          "",
+          "    async likeEvent(userId, eventId, verbose = null) {",
+          "        return this.put(\"/users/\" + userId + \"/events/\" + eventId + \"/like\", null, \"Ошибка при лайке события\", verbose)",
+          "            .catch(err => {",
+          "                if (err.message && err.message.includes(\"Отправлено пустое тело ответа\")) {",
+          "                    return null;",
+          "                }",
+          "                throw err;",
+          "            });",
           "    }",
           "",
           "    async deleteSubscription(userId, subId, verbose=null) {",
@@ -2625,6 +2938,10 @@
           "",
           "    async delete(path, body = null, errorText = \"Ошибка при выполнении delete-запроса\", verbode=null) {",
           "        return this.sendRequest(\"DELETE\", path, body, errorText, verbode);",
+          "    }",
+          "",
+          "    async put(path, body = null, errorText = \"Ошибка при выполнении put-запроса\", verbode=null) {",
+          "        return this.sendRequest(\"PUT\", path, body, errorText, verbode);",
           "    }",
           "",
           "    async sendRequest(method, path, body=null, errorText = \"Ошибка при выполнении запроса: \", verbose=null) {",
@@ -2801,6 +3118,22 @@
     },
     {
       "key": "uid",
+      "value": ""
+    },
+    {
+      "key": "initiatorId",
+      "value": ""
+    },
+    {
+      "key": "raterId",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "eventId",
       "value": ""
     }
   ]
