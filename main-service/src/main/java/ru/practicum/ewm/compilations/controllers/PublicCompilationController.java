@@ -18,7 +18,7 @@ import java.util.List;
 @RequestMapping("/compilations")
 @RequiredArgsConstructor
 @Validated
-public class PublicController {
+public class PublicCompilationController {
     public static final String PARAM_PINNED = "pinned";
     public static final String PARAM_SIZE = "size";
     public static final String PARAM_FROM = "from";
