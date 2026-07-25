@@ -13,7 +13,7 @@ import ru.practicum.ewm.compilations.services.CompilationService;
 @RestController
 @RequestMapping(path = "/admin/compilations")
 @RequiredArgsConstructor
-public class AdminController {
+public class AdminCompilationController {
 
     private final CompilationService compilationService;
 
